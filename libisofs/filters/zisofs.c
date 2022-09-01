@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2009 - 2020 Thomas Schmitt
- * 
- * This file is part of the libisofs project; you can redistribute it and/or 
- * modify it under the terms of the GNU General Public License version 2 
- * or later as published by the Free Software Foundation. 
+ *
+ * This file is part of the libisofs project; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * or later as published by the Free Software Foundation.
  * See COPYING file for details.
  *
  * It implements a filter facility which can pipe a IsoStream into zisofs
@@ -27,7 +27,11 @@
 
 #include <sys/types.h>
 #include <sys/time.h>
-#include <sys/wait.h>
+
+#ifndef _WIN32
+    #include <sys/wait.h>
+#endif // _WIN32
+
 #include <unistd.h>
 #include <stdio.h>
 #include <errno.h>
@@ -82,14 +86,14 @@ static uint64_t ziso_block_pointer_mgt(uint64_t num, int mode);
  * a zisofs compression filter and writing the compressed stream needs in the
  * sum three read runs of the input stream.
  * <= 0 disables this file size based discarding.
- */ 
+ */
 #define ISO_ZISOFS_MANY_BLOCKS 0
 
 /* A ratio describing the part of the maximum number of block pointers which
  * shall be kept free by intermediate discarding of block pointers. See above
  * ISO_ZISOFS_MANY_BLOCKS. -1.0 disables this feature.
  */
-#define ISO_ZISOFS_KBF_RATIO  -1.0 
+#define ISO_ZISOFS_KBF_RATIO  -1.0
 
 
 /* --------------------------- Runtime parameters ------------------------- */
@@ -131,7 +135,7 @@ int ziso_decide_v2_usage(off_t orig_size)
 
 static
 int ziso_decide_bs_log2(off_t orig_size)
-{       
+{
     int bs_log2, bs_log2_min, i;
     off_t bs;
 
@@ -274,7 +278,7 @@ uint64_t ziso_block_pointer_mgt(uint64_t num, int mode)
     if (mode == 2) {
         if (global_count < num) {
             if (underrun < 3)
-                iso_msg_submit(-1, ISO_ZISOFS_BPT_UNDERRUN, 0, 
+                iso_msg_submit(-1, ISO_ZISOFS_BPT_UNDERRUN, 0,
                             "Prevented global block pointer counter underrun");
             underrun++;
             global_count = 0;
@@ -340,7 +344,7 @@ typedef struct
  * IMPORTANT: Any change must be reflected by ziso_clone_stream().
  */
 typedef struct
-{   
+{
     ZisofsFilterStreamData std;
 
     uint64_t orig_size;
@@ -609,7 +613,7 @@ int ziso_stream_compress(IsoStream *stream, void *buf, size_t desired)
          * function in the course of compressed size measurement.
          */
         data->block_pointers_dropped = 0;
-        measure_ret = ziso_stream_measure_size(stream, 1 | 2); 
+        measure_ret = ziso_stream_measure_size(stream, 1 | 2);
         if (measure_ret < 0)
             return (rng->error_ret = measure_ret);
 
@@ -715,7 +719,7 @@ int ziso_stream_compress(IsoStream *stream, void *buf, size_t desired)
                             todo = rng->buffer_size / 4;
                         for (i = 0; i < todo; i++)
                             iso_lsb((unsigned char *) (rng->block_buffer +
-                                                       4 * i), 
+                                                       4 * i),
                                     (uint32_t) (copy_base[i] & 0xffffffff), 4);
                         rng->buffer_fill = todo * 4;
                     } else {
@@ -933,7 +937,7 @@ int ziso_parse_zisofs_head(IsoStream *stream, uint8_t *ziso_algo_num,
        if (ret < 0)
            return ret;
        if (ret != 4)
-           return ISO_ZISOFS_WRONG_INPUT; 
+           return ISO_ZISOFS_WRONG_INPUT;
     }
     return 1;
 }
@@ -1150,7 +1154,7 @@ int ziso_stream_is_repeatable(IsoStream *stream)
 
 
 static
-void ziso_stream_get_id(IsoStream *stream, unsigned int *fs_id, 
+void ziso_stream_get_id(IsoStream *stream, unsigned int *fs_id,
                         dev_t *dev_id, ino_t *ino_id)
 {
     ZisofsFilterStreamData *data;
@@ -1318,7 +1322,7 @@ static
 int ziso_cmp_ino(IsoStream *s1, IsoStream *s2)
 {
     /* This function may rely on being called by iso_stream_cmp_ino()
-       only with s1, s2 which both point to it as their .cmp_ino() function. 
+       only with s1, s2 which both point to it as their .cmp_ino() function.
        It would be a programming error to let any other than
        ziso_stream_compress_class point to ziso_cmp_ino().
     */
@@ -1336,7 +1340,7 @@ static
 int ziso_uncompress_cmp_ino(IsoStream *s1, IsoStream *s2)
 {
     /* This function may rely on being called by iso_stream_cmp_ino()
-       only with s1, s2 which both point to it as their .cmp_ino() function. 
+       only with s1, s2 which both point to it as their .cmp_ino() function.
        It would be a programming error to let any other than
        ziso_stream_uncompress_class point to ziso_uncompress_cmp_ino().
        This fallback endangers transitivity of iso_stream_cmp_ino().
@@ -1369,7 +1373,7 @@ void ziso_filter_free(FilterContext *filter)
  * @param flag bit1= Install a decompression filter
  */
 static
-int ziso_filter_get_filter(FilterContext *filter, IsoStream *original, 
+int ziso_filter_get_filter(FilterContext *filter, IsoStream *original,
                            IsoStream **filtered, int flag)
 {
     IsoStream *str;
@@ -1431,18 +1435,18 @@ int ziso_filter_get_filter(FilterContext *filter, IsoStream *original,
 
 
 /* To be called by iso_file_add_filter().
- * The FilterContext input parameter is not furtherly needed for the 
+ * The FilterContext input parameter is not furtherly needed for the
  * emerging IsoStream.
  */
 static
-int ziso_filter_get_compressor(FilterContext *filter, IsoStream *original, 
+int ziso_filter_get_compressor(FilterContext *filter, IsoStream *original,
                                IsoStream **filtered)
 {
     return ziso_filter_get_filter(filter, original, filtered, 0);
 }
 
 static
-int ziso_filter_get_uncompressor(FilterContext *filter, IsoStream *original, 
+int ziso_filter_get_uncompressor(FilterContext *filter, IsoStream *original,
                                  IsoStream **filtered)
 {
     return ziso_filter_get_filter(filter, original, filtered, 2);
@@ -1459,7 +1463,7 @@ static
 int ziso_create_context(FilterContext **filter, int flag)
 {
     FilterContext *f;
-    
+
     *filter = f = calloc(1, sizeof(FilterContext));
     if (f == NULL) {
         return ISO_OUT_OF_MEM;
@@ -1564,7 +1568,7 @@ int iso_zisofs_get_refcounts(off_t *ziso_count, off_t *osiz_count, int flag)
 int ziso_add_osiz_filter(IsoFile *file, uint8_t zisofs_algo[2],
                          uint8_t header_size_div4, uint8_t block_size_log2,
                          uint64_t uncompressed_size, int flag)
-{   
+{
 
 #ifdef Libisofs_with_zliB
 
@@ -1583,14 +1587,14 @@ int ziso_add_osiz_filter(IsoFile *file, uint8_t zisofs_algo[2],
     unstd->block_size_log2 = block_size_log2;
     unstd->std.size = uncompressed_size;
     return ISO_SUCCESS;
-    
+
 #else
 
     return ISO_ZLIB_NOT_ENABLED;
-    
+
 #endif /* ! Libisofs_with_zliB */
-    
-}   
+
+}
 
 
 
@@ -1611,7 +1615,7 @@ int ziso_is_zisofs_stream(IsoStream *stream, int *stream_type,
     ZisofsUncomprStreamData *unstd;
     uint8_t algo_num;
 
-    *stream_type = 0; 
+    *stream_type = 0;
     if (stream->class == &ziso_stream_compress_class && !(flag & 2)) {
         *stream_type = 1;
         cnstd = stream->data;
@@ -1634,7 +1638,7 @@ int ziso_is_zisofs_stream(IsoStream *stream, int *stream_type,
         data = stream->data;
         unstd = stream->data;
         ret = ziso_num_to_algo(unstd->zisofs_algo_num, zisofs_algo);
-        if (ret < 0) 
+        if (ret < 0)
             return ISO_ZISOFS_WRONG_INPUT;
         *header_size_div4 = unstd->header_size_div4;
         *block_size_log2 = unstd->block_size_log2;
@@ -1645,7 +1649,7 @@ int ziso_is_zisofs_stream(IsoStream *stream, int *stream_type,
         return 0;
 
     ret = iso_stream_open(stream);
-    if (ret < 0) 
+    if (ret < 0)
         return ret;
     ret = ziso_parse_zisofs_head(stream, &algo_num, header_size_div4,
                                  block_size_log2, uncompressed_size,
@@ -1658,9 +1662,9 @@ int ziso_is_zisofs_stream(IsoStream *stream, int *stream_type,
         algo_ret = 1;
     }
     close_ret = iso_stream_close(stream);
-    if (algo_ret < 0) 
+    if (algo_ret < 0)
         return ISO_ZISOFS_WRONG_INPUT;
-    if (close_ret < 0) 
+    if (close_ret < 0)
         return close_ret;
 
     return ret;
@@ -1711,13 +1715,13 @@ int iso_zisofs_set_params(struct iso_zisofs_ctrl *params, int flag)
         ziso_keep_blocks_free_ratio = params->bpt_discard_free_ratio;
 
     return 1;
-    
+
 #else
 
     return ISO_ZLIB_NOT_ENABLED;
-    
+
 #endif /* ! Libisofs_with_zliB */
-    
+
 }
 
 
@@ -1747,9 +1751,9 @@ int iso_zisofs_get_params(struct iso_zisofs_ctrl *params, int flag)
 #else
 
     return ISO_ZLIB_NOT_ENABLED;
-    
+
 #endif /* ! Libisofs_with_zliB */
-    
+
 }
 
 
@@ -1763,7 +1767,7 @@ int iso_stream_get_zisofs_par(IsoStream *stream, int *stream_type,
 
     uint64_t uncompressed_size;
     int header_size_div4, ret;
-    
+
     if (stream == NULL)
         return ISO_NULL_POINTER;
     ret = ziso_is_zisofs_stream(stream, stream_type, zisofs_algo,
@@ -1777,7 +1781,7 @@ int iso_stream_get_zisofs_par(IsoStream *stream, int *stream_type,
 #else
 
     return ISO_ZLIB_NOT_ENABLED;
-    
+
 #endif /* ! Libisofs_with_zliB */
 
 }
@@ -1799,7 +1803,7 @@ int iso_stream_zisofs_discard_bpt(IsoStream *stream, int flag)
 #else
 
     return ISO_ZLIB_NOT_ENABLED;
-    
+
 #endif /* ! Libisofs_with_zliB */
 
 }

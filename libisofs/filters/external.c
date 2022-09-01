@@ -1,21 +1,23 @@
 /*
  * Copyright (c) 2009 - 2011 Thomas Schmitt
- * 
- * This file is part of the libisofs project; you can redistribute it and/or 
- * modify it under the terms of the GNU General Public License version 2 
- * or later as published by the Free Software Foundation. 
+ *
+ * This file is part of the libisofs project; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * or later as published by the Free Software Foundation.
  * See COPYING file for details.
  *
  * It implements a filter facility which can pipe a IsoStream into an external
  * process, read its output and forward it as IsoStream output to an IsoFile.
  * The external processes get started according to an IsoExternalFilterCommand
  * which is described in libisofs.h.
- * 
+ *
  */
 
 #ifdef HAVE_CONFIG_H
 #include "../config.h"
 #endif
+
+#ifndef _WIN32
 
 #include "../libisofs.h"
 #include "../filter.h"
@@ -24,7 +26,9 @@
 
 #include <sys/types.h>
 #include <sys/time.h>
-#include <sys/wait.h>
+#ifndef _WIN32
+    #include <sys/wait.h>
+#endif // _WIN32
 #include <unistd.h>
 #include <signal.h>
 #include <stdio.h>
@@ -548,7 +552,7 @@ int extf_stream_is_repeatable(IsoStream *stream)
 
 
 static
-void extf_stream_get_id(IsoStream *stream, unsigned int *fs_id, 
+void extf_stream_get_id(IsoStream *stream, unsigned int *fs_id,
                         dev_t *dev_id, ino_t *ino_id)
 {
     ExternalFilterStreamData *data;
@@ -605,7 +609,7 @@ int extf_clone_stream(IsoStream *old_stream, IsoStream **new_stream, int flag)
     int ret;
     IsoStream *new_input_stream, *stream;
     ExternalFilterStreamData *stream_data, *old_stream_data;
-    
+
     if (flag)
         return ISO_STREAM_NO_CLONE; /* unknown option required */
 
@@ -704,11 +708,11 @@ void extf_filter_free(FilterContext *filter)
 
 
 /* To be called by iso_file_add_filter().
- * The FilterContext input parameter is not furtherly needed for the 
+ * The FilterContext input parameter is not furtherly needed for the
  * emerging IsoStream.
  */
 static
-int extf_filter_get_filter(FilterContext *filter, IsoStream *original, 
+int extf_filter_get_filter(FilterContext *filter, IsoStream *original,
                   IsoStream **filtered)
 {
     IsoStream *str;
@@ -767,7 +771,7 @@ int extf_create_context(IsoExternalFilterCommand *cmd,
                         FilterContext **filter, int flag)
 {
     FilterContext *f;
-    
+
     *filter = f = calloc(1, sizeof(FilterContext));
     if (f == NULL) {
         return ISO_OUT_OF_MEM;
@@ -842,3 +846,4 @@ int iso_stream_get_external_filter(IsoStream *stream,
     return 1;
 }
 
+#endif // _WIN32

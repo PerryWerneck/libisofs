@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2009 - 2011 Thomas Schmitt
- * 
- * This file is part of the libisofs project; you can redistribute it and/or 
- * modify it under the terms of the GNU General Public License version 2 
- * or later as published by the Free Software Foundation. 
+ *
+ * This file is part of the libisofs project; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * or later as published by the Free Software Foundation.
  * See COPYING file for details.
  *
  * It implements a filter facility which can pipe a IsoStream into gzip
@@ -29,7 +29,11 @@
 
 #include <sys/types.h>
 #include <sys/time.h>
-#include <sys/wait.h>
+
+#ifndef _WIN32
+    #include <sys/wait.h>
+#endif // _WIN32
+
 #include <unistd.h>
 #include <stdio.h>
 #include <errno.h>
@@ -474,7 +478,7 @@ int gzip_stream_is_repeatable(IsoStream *stream)
 
 
 static
-void gzip_stream_get_id(IsoStream *stream, unsigned int *fs_id, 
+void gzip_stream_get_id(IsoStream *stream, unsigned int *fs_id,
                         dev_t *dev_id, ino_t *ino_id)
 {
     GzipFilterStreamData *data;
@@ -610,13 +614,13 @@ IsoStreamIface gzip_stream_uncompress_class = {
     gzip_clone_stream
 };
 
- 
+
 static
 int gzip_cmp_ino(IsoStream *s1, IsoStream *s2)
 {
     /* This function may rely on being called by iso_stream_cmp_ino()
        only with s1, s2 which both point to it as their .cmp_ino() function.
-       It would be a programming error to let any other than 
+       It would be a programming error to let any other than
        gzip_stream_compress_class point to gzip_cmp_ino().
        This fallback endangers transitivity of iso_stream_cmp_ino().
     */
@@ -627,15 +631,15 @@ int gzip_cmp_ino(IsoStream *s1, IsoStream *s2)
     /* Both streams apply the same treatment to their input streams */
     return iso_stream_cmp_ino(iso_stream_get_input_stream(s1, 0),
                               iso_stream_get_input_stream(s2, 0), 0);
-}   
+}
 
- 
+
 static
 int gzip_uncompress_cmp_ino(IsoStream *s1, IsoStream *s2)
 {
     /* This function may rely on being called by iso_stream_cmp_ino()
        only with s1, s2 which both point to it as their .cmp_ino() function.
-       It would be a programming error to let any other than 
+       It would be a programming error to let any other than
        gzip_stream_uncompress_class point to gzip_uncompress_cmp_ino().
     */
     if (s1->class != s2->class ||
@@ -646,7 +650,7 @@ int gzip_uncompress_cmp_ino(IsoStream *s1, IsoStream *s2)
     /* Both streams apply the same treatment to their input streams */
     return iso_stream_cmp_ino(iso_stream_get_input_stream(s1, 0),
                               iso_stream_get_input_stream(s2, 0), 0);
-}   
+}
 
 
 /* ------------------------------------------------------------------------- */
@@ -664,7 +668,7 @@ void gzip_filter_free(FilterContext *filter)
  * @param flag bit1= Install a decompression filter
  */
 static
-int gzip_filter_get_filter(FilterContext *filter, IsoStream *original, 
+int gzip_filter_get_filter(FilterContext *filter, IsoStream *original,
                            IsoStream **filtered, int flag)
 {
     IsoStream *str;
@@ -709,18 +713,18 @@ int gzip_filter_get_filter(FilterContext *filter, IsoStream *original,
 }
 
 /* To be called by iso_file_add_filter().
- * The FilterContext input parameter is not furtherly needed for the 
+ * The FilterContext input parameter is not furtherly needed for the
  * emerging IsoStream.
  */
 static
-int gzip_filter_get_compressor(FilterContext *filter, IsoStream *original, 
+int gzip_filter_get_compressor(FilterContext *filter, IsoStream *original,
                                IsoStream **filtered)
 {
     return gzip_filter_get_filter(filter, original, filtered, 0);
 }
 
 static
-int gzip_filter_get_uncompressor(FilterContext *filter, IsoStream *original, 
+int gzip_filter_get_uncompressor(FilterContext *filter, IsoStream *original,
                                  IsoStream **filtered)
 {
     return gzip_filter_get_filter(filter, original, filtered, 2);
@@ -737,7 +741,7 @@ static
 int gzip_create_context(FilterContext **filter, int flag)
 {
     FilterContext *f;
-    
+
     *filter = f = calloc(1, sizeof(FilterContext));
     if (f == NULL) {
         return ISO_OUT_OF_MEM;

@@ -31,7 +31,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <locale.h>
-#include <langinfo.h>
+#ifndef _WIN32
+    #include <langinfo.h>
+#endif // _WIN32
 #include <limits.h>
 #include <stdio.h>
 #include <ctype.h>
@@ -2075,8 +2077,10 @@ invalid_zf:
 
     /* Fill last entries */
     atts.st_dev = fsdata->id;
+#ifndef _WIN32
     atts.st_blksize = BLOCK_SIZE;
     atts.st_blocks = DIV_UP(atts.st_size, BLOCK_SIZE);
+#endif // _WIN32
 
     /* TODO #00014 : more sanity checks to ensure dir record info is valid */
     if (S_ISLNK(atts.st_mode) && (linkdest == NULL)) {
@@ -3386,6 +3390,7 @@ int image_builder_create_node(IsoNodeBuilder *builder, IsoImage *image,
             new->refcount = 0;
         }
         break;
+#ifdef S_IFLNK
     case S_IFLNK:
         {
             /* source is a symbolic link */
@@ -3410,7 +3415,10 @@ int image_builder_create_node(IsoNodeBuilder *builder, IsoImage *image,
             new->refcount = 0;
         }
         break;
+#endif // S_IFLNK
+#ifdef S_IFSOCK
     case S_IFSOCK:
+#endif // S_IFSOCK
     case S_IFBLK:
     case S_IFCHR:
     case S_IFIFO:
@@ -3537,8 +3545,10 @@ int create_boot_img_filesrc(IsoImageFilesystem *fs, IsoImage *image, int idx,
 
     /* Fill last entries */
     atts.st_dev = fsdata->id;
+#ifndef _WIN32
     atts.st_blksize = BLOCK_SIZE;
     atts.st_blocks = DIV_UP(atts.st_size, BLOCK_SIZE);
+#endif // _WIN32
 
     /* ok, we can now create the file source */
     ifsdata = calloc(1, sizeof(ImageFileSourceData));

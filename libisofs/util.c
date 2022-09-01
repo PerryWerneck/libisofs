@@ -2,10 +2,10 @@
  * Copyright (c) 2007 Vreixo Formoso
  * Copyright (c) 2007 Mario Danic
  * Copyright (c) 2009 - 2019 Thomas Schmitt
- * 
- * This file is part of the libisofs project; you can redistribute it and/or 
- * modify it under the terms of the GNU General Public License version 2 
- * or later as published by the Free Software Foundation. 
+ *
+ * This file is part of the libisofs project; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * or later as published by the Free Software Foundation.
  * See COPYING file for details.
  */
 
@@ -28,7 +28,10 @@
 #include <limits.h>
 #include <iconv.h>
 #include <locale.h>
+
+#ifndef _WIN32
 #include <langinfo.h>
+#endif // _WIN32
 
 #include <unistd.h>
 
@@ -67,7 +70,7 @@ int iso_iconv_open(struct iso_iconv_handle *handle,
     handle->descr = iconv_open(tocode, fromcode);
     if (handle->descr == (iconv_t) -1) {
         if (strlen(tocode) + strlen(fromcode) <= 160 && iso_iconv_debug)
-            fprintf(stderr, 
+            fprintf(stderr,
            "libisofs_DEBUG: iconv_open(\"%s\", \"%s\") failed: errno= %d %s\n",
                     tocode, fromcode, errno, strerror(errno));
         return 0;
@@ -103,7 +106,7 @@ size_t iso_iconv(struct iso_iconv_handle *handle,
         if (inbuf == NULL || outbuf == NULL) {
 null_buf:;
             if (iso_iconv_debug)
-                fprintf(stderr, 
+                fprintf(stderr,
 "libisofs_DEBUG: iso_iconv(): NULL buffers not allowed in shortcut mapping\n");
             return (size_t) -1;
         }
@@ -136,7 +139,7 @@ int iso_iconv_close(struct iso_iconv_handle *handle, int flag)
 
     if (!(handle->status & 1)) {
         if (iso_iconv_debug)
-            fprintf(stderr, 
+            fprintf(stderr,
     "libisofs_DEBUG: iso_iconv_close(): iso_iconv_handle not in open state\n");
         return -1;
     }
@@ -186,7 +189,12 @@ char *iso_get_local_charset(int flag)
 {
    if(libisofs_local_charset[0])
      return libisofs_local_charset;
+#ifdef _WIN32
+    static char buffer[10];
+    snprintf(buffer,9,"CP%u",GetACP());
+#else
    return nl_langinfo(CODESET);
+#endif // _WIN32
 }
 
 int strconv(const char *str, const char *icharset, const char *ocharset,
@@ -302,9 +310,9 @@ int strnconv(const char *str, const char *icharset, const char *ocharset,
 
 
 /**
- * Convert a str in a specified codeset to WCHAR_T. 
+ * Convert a str in a specified codeset to WCHAR_T.
  * The result must be free() when no more needed
- * 
+ *
  * @return
  *      1 success, < 0 error
  */
@@ -354,9 +362,9 @@ int str2wchar(const char *icharset, const char *input, wchar_t **output)
         } else {
             wchar_t *wret;
 
-            /* 
+            /*
              * Invalid input string charset.
-             * This can happen if input is in fact encoded in a charset 
+             * This can happen if input is in fact encoded in a charset
              * different than icharset.
              * We can't do anything better than replace by "_" and continue.
              */
@@ -475,13 +483,13 @@ int str2ascii(const char *icharset, const char *input, char **output)
         if (errno == E2BIG)
             break;
 
-        /* An incomplete multi bytes sequence was found. We 
+        /* An incomplete multi bytes sequence was found. We
          * can't do anything here. That's quite unlikely. */
         if (errno == EINVAL)
             break;
 
         /* The last possible error is an invalid multi bytes
-         * sequence. Just replace the character with a "_". 
+         * sequence. Just replace the character with a "_".
          * Probably the character doesn't exist in ascii like
          * "é, è, à, ç, ..." in French. */
         *ret++ = '_';
@@ -527,7 +535,7 @@ fallback:;
         if (*cpt < 32 || *cpt > 126)
             *cpt = '_';
     }
-    return ISO_SUCCESS; 
+    return ISO_SUCCESS;
 }
 
 static
@@ -565,7 +573,7 @@ int str2ucs(const char *icharset, const char *input, uint16_t **output)
     struct iso_iconv_handle conv;
     int conv_ret = 0;
     int direct_conv = 0;
-    
+
     /* That while loop smells like a potential show stopper */
     size_t loop_counter = 0, loop_limit = 3;
 
@@ -620,7 +628,7 @@ int str2ucs(const char *icharset, const char *input, uint16_t **output)
         conv_ret = iso_iconv_open(&conv, "UCS-2BE", (char *) icharset, 0);
         if (conv_ret <= 0) {
             return ISO_CHARSET_CONV_ERROR;
-        }            
+        }
         direct_conv = 1;
         src = (char *) input;
         inbytes = strlen(input);
@@ -638,13 +646,13 @@ int str2ucs(const char *icharset, const char *input, uint16_t **output)
         if (errno == E2BIG)
             break;
 
-        /* An incomplete multi bytes sequence was found. We 
+        /* An incomplete multi bytes sequence was found. We
          * can't do anything here. That's quite unlikely. */
         if (errno == EINVAL)
             break;
 
         /* The last possible error is an invalid multi bytes
-         * sequence. Just replace the character with a "_". 
+         * sequence. Just replace the character with a "_".
          * Probably the character doesn't exist in UCS */
         set_ucsbe((uint16_t*) ret, '_');
         ret += sizeof(uint16_t);
@@ -704,9 +712,9 @@ int str2utf16be(const char *icharset, const char *input, uint16_t **output)
         return ISO_NULL_POINTER;
     }
 
-    /* 
+    /*
       Try the direct conversion.
-    */ 
+    */
     conv_ret = iso_iconv_open(&conv, "UTF-16BE", (char *) icharset, 0);
     if (conv_ret > 0) {
         direct_conv = 1;
@@ -757,13 +765,13 @@ int str2utf16be(const char *icharset, const char *input, uint16_t **output)
         if (errno == E2BIG)
             break;
 
-        /* An incomplete multi bytes sequence was found. We 
+        /* An incomplete multi bytes sequence was found. We
          * can't do anything here. That's quite unlikely. */
         if (errno == EINVAL)
             break;
 
         /* The last possible error is an invalid multi bytes
-         * sequence. Just replace the character with a "_". 
+         * sequence. Just replace the character with a "_".
          * Probably the character doesn't exist in UCS */
         set_ucsbe((uint16_t*) ret, '_');
         ret += sizeof(uint16_t);
@@ -810,14 +818,14 @@ static int valid_d_char(char c)
 
 static int valid_a_char(char c)
 {
-    return (c >= ' ' && c <= '"') || (c >= '%' && c <= '?') || 
+    return (c >= ' ' && c <= '"') || (c >= '%' && c <= '?') ||
            (c >= 'A' && c <= 'Z') || (c == '_');
 }
 
 static int valid_j_char(uint16_t c)
 {
     return cmp_ucsbe(&c, ' ') != -1 && cmp_ucsbe(&c, '*') && cmp_ucsbe(&c, '/')
-        && cmp_ucsbe(&c, ':') && cmp_ucsbe(&c, ';') && cmp_ucsbe(&c, '?') 
+        && cmp_ucsbe(&c, ':') && cmp_ucsbe(&c, ';') && cmp_ucsbe(&c, '?')
         && cmp_ucsbe(&c, '\\');
 }
 
@@ -838,7 +846,7 @@ static char map_fileid_char(char c, int relaxed)
     if (valid_d_char(c))
         return c;
     if ((relaxed & 4) && (c & 0x7f) == c && (c < 'a' || c > 'z'))
-        return c; 
+        return c;
     upper= toupper(c);
     if (valid_d_char(upper)) {
         if (relaxed & 3) {
@@ -891,7 +899,7 @@ char *iso_2_dirid(const char *src)
 
 char *iso_1_fileid(const char *src, int relaxed, int force_dots)
 {
-    char *dot; /* Position of the last dot in the filename, will be used 
+    char *dot; /* Position of the last dot in the filename, will be used
                 * to calculate lname and lext. */
     int lname, lext, pos, i;
     char dest[13]; /*  13 = 8 (name) + 1 (.) + 3 (ext) + 1 (\0) */
@@ -969,11 +977,11 @@ char *iso_2_fileid(const char *src)
 
     dot = strrchr(src, '.');
 
-    /* 
+    /*
      * Since the maximum length can be divided freely over the name and
      * extension, we need to calculate their new lengths (lnname and
      * lnext). If the original filename is too long, we start by trimming
-     * the extension, but keep a minimum extension length of 3. 
+     * the extension, but keep a minimum extension length of 3.
      */
     if (dot == NULL || *(dot + 1) == '\0') {
         lname = strlen(src);
@@ -1013,12 +1021,12 @@ char *iso_2_fileid(const char *src)
 
 /**
  * Create a dir name suitable for an ISO image with relaxed constraints.
- * 
+ *
  * @param size
  *     Max len for the name
  * @param relaxed
  *     bit0+1: 0 only allow d-characters,
- *             1 allow also lowe case chars, 
+ *             1 allow also lowe case chars,
  *             2 allow all 8-bit characters,
  *     bit2:   allow 7-bit characters (but map lowercase to uppercase if
  *             not bit0+1 == 2)
@@ -1075,12 +1083,12 @@ char *iso_r_dirid(const char *src, int size, int relaxed)
 /**
  * Create a file name suitable for an ISO image with level > 1 and
  * with relaxed constraints.
- * 
+ *
  * @param len
  *     Max len for the name, without taken the "." into account.
  * @param relaxed
  *     bit0+1: 0 only allow d-characters,
- *             1 allow also lowe case chars, 
+ *             1 allow also lowe case chars,
  *             2 allow all 8-bit characters,
  *     bit2:   allow 7-bit characters (but map lowercase to uppercase if
  *             not bit0+1 == 2)
@@ -1103,11 +1111,11 @@ char *iso_r_fileid(const char *src, size_t len, int relaxed, int forcedot)
 
     dot = strrchr(src, '.');
 
-    /* 
+    /*
      * Since the maximum length can be divided freely over the name and
      * extension, we need to calculate their new lengths (lnname and
      * lnext). If the original filename is too long, we start by trimming
-     * the extension, but keep a minimum extension length of 3. 
+     * the extension, but keep a minimum extension length of 3.
      */
     if (dot == NULL || *(dot + 1) == '\0') {
         lname = strlen(src);
@@ -1116,7 +1124,7 @@ char *iso_r_fileid(const char *src, size_t len, int relaxed, int forcedot)
     } else {
         lext = strlen(dot + 1);
         lname = strlen(src) - lext - 1;
-        lnext = (strlen(src) > len + 1 && lext > 3) ? 
+        lnext = (strlen(src) > len + 1 && lext > 3) ?
                 (lname < (int) len - 3 ? (int) len - lname : 3)
                 : lext;
         lnname = (strlen(src) > len + 1) ? (int) len - lnext : lname;
@@ -1229,11 +1237,11 @@ uint16_t *iso_j_file_id(const uint16_t *src, int flag)
 
     dot = ucsrchr(src, '.');
 
-    /* 
+    /*
      * Since the maximum length can be divided freely over the name and
      * extension, we need to calculate their new lengths (lnname and
      * lnext). If the original filename is too long, we start by trimming
-     * the extension, but keep a minimum extension length of 3. 
+     * the extension, but keep a minimum extension length of 3.
      */
     if (dot == NULL || cmp_ucsbe(dot + 1, '\0') == 0) {
         lname = ucslen(src);
@@ -1353,7 +1361,7 @@ uint16_t *ucsdup(const uint16_t *str)
 {
     uint16_t *ret;
     size_t len = ucslen(str);
-    
+
     ret = malloc(2 * (len + 1));
     if (ret == NULL)
         return NULL;
@@ -1545,7 +1553,7 @@ uint32_t iso_read_bb(const uint8_t *buf, int bytes, int *error)
 
     if (error) {
         uint32_t v2 = iso_read_msb(buf + bytes, bytes);
-        if (v1 != v2) 
+        if (v1 != v2)
             *error = 1;
     }
     return v1;
@@ -1642,7 +1650,7 @@ void iso_datetime_17(unsigned char *buf, time_t t, int always_gmt)
         buf[16] = 0;
         return;
     }
-    
+
     if (!tzsetup) {
         tzset();
         tzsetup = 1;
@@ -1754,7 +1762,7 @@ int ts_is_leapyear(int tm_year) /* years since 1900 */
    (Royal Institute of Technology, Stockholm, Sweden),
    which was modified by Andrew Tridgell for Samba4.
    I claim own copyright 2011 Thomas Schmitt <scdbackup@gmx.net>.
-*/ 
+*/
 static
 time_t ts_timegm(struct tm *tm)
 {
@@ -1857,20 +1865,20 @@ time_t iso_datetime_read_17(const uint8_t *buf)
 
 /**
  * Check whether the caller process has read access to the given local file.
- * 
- * @return 
- *     1 on success (i.e, the process has read access), < 0 on error 
+ *
+ * @return
+ *     1 on success (i.e, the process has read access), < 0 on error
  *     (including ISO_FILE_ACCESS_DENIED on access denied to the specified file
  *     or any directory on the path).
  */
 int iso_eaccess(const char *path)
 {
     int access;
-    
+
     /* use non standard eaccess when available, open() otherwise */
 #ifdef HAVE_EACCESS
     access = !eaccess(path, R_OK);
-#else 
+#else
     int fd = open(path, O_RDONLY);
     if (fd != -1) {
         close(fd);
@@ -1879,7 +1887,7 @@ int iso_eaccess(const char *path)
         access = 0;
     }
 #endif
-    
+
     if (!access) {
         int err;
 
@@ -1912,7 +1920,7 @@ int iso_eaccess(const char *path)
 char *iso_util_strcopy(const char *buf, size_t len)
 {
     char *str;
-    
+
     str = calloc(len + 1, 1);
     if (str == NULL) {
         return NULL;
@@ -1926,7 +1934,7 @@ char *iso_util_strcopy_untail(const char *buf, size_t len_in)
 {
     char *str;
     int len;
-    
+
     str = iso_util_strcopy(buf, len_in);
     if (str == NULL) {
         return NULL;
@@ -1935,7 +1943,7 @@ char *iso_util_strcopy_untail(const char *buf, size_t len_in)
     for (len = len_in - 1; len >= 0; --len) {
         if (str[len] != ' ')
     break;
-        str[len] = 0; 
+        str[len] = 0;
     }
     return str;
 }
@@ -1947,7 +1955,7 @@ char *iso_util_strcopy_untail(const char *buf, size_t len_in)
 void strncpy_pad(char *dest, const char *src, size_t max)
 {
     size_t len, i;
-    
+
     if (src != NULL) {
         len = MIN(strlen(src), max);
         for (i = 0; i < len; ++i)
@@ -1955,8 +1963,8 @@ void strncpy_pad(char *dest, const char *src, size_t max)
     } else {
         len = 0;
     }
-    
-    for (i = len; i < max; ++i) 
+
+    for (i = len; i < max; ++i)
         dest[i] = ' ';
 }
 
@@ -1967,11 +1975,11 @@ char *ucs2str(const char *buf, size_t len)
     struct iso_iconv_handle conv;
     int conv_ret;
     size_t n;
-    
+
     inbytes = len;
-    
+
     outbytes = (inbytes+1) * MB_LEN_MAX;
-    
+
     /* ensure enough space */
     out = calloc(outbytes, 1);
     if (out == NULL)
@@ -2024,14 +2032,14 @@ void iso_lib_version(int *major, int *minor, int *micro)
 int iso_lib_is_compatible(int major, int minor, int micro)
 {
     int cmajor, cminor, cmicro;
-    
+
     /* for now, the rule is that library is compatible if requested
      * version is lower */
     iso_lib_version(&cmajor, &cminor, &cmicro);
 
-    return cmajor > major 
-           || (cmajor == major 
-               && (cminor > minor 
+    return cmajor > major
+           || (cmajor == major
+               && (cminor > minor
                    || (cminor == minor && cmicro >= micro)));
 }
 
@@ -2233,7 +2241,7 @@ int iso_util_decode_md5_tag(char data[2048], int *tag_type, uint32_t *pos,
 
 
 int iso_util_eval_md5_tag(char *block, int desired, uint32_t lba,
-                          void *ctx, uint32_t ctx_start_lba, 
+                          void *ctx, uint32_t ctx_start_lba,
                           int *tag_type, uint32_t *next_tag, int flag)
 {
     int decode_ret, ret;
@@ -2250,7 +2258,7 @@ int iso_util_eval_md5_tag(char *block, int desired, uint32_t lba,
         goto unexpected_type;
 
     if (decode_ret == (int) ISO_MD5_AREA_CORRUPTED) {
-        ret = decode_ret; 
+        ret = decode_ret;
         goto ex;
     } else if (!((1 << *tag_type) & desired)) {
 unexpected_type:;
@@ -2317,7 +2325,7 @@ uint16_t iso_htons(uint16_t v)
     iso_msb((uint8_t *) &ret, (uint32_t) v, 2);
 
     return ret;
-}   
+}
 
 
 /* If an UTF-16 surrogate pair was split : Change to UTF-16 '_'.
@@ -2347,7 +2355,7 @@ int iso_clone_mem(char *in, char **out, size_t size)
     memcpy(*out, in, size);
     return ISO_SUCCESS;
 }
-    
+
 
 int iso_clone_mgtd_mem(char *in, char **out, size_t size)
 {
