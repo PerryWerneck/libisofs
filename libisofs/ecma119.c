@@ -4,8 +4,8 @@
  * Copyright (c) 2009 - 2019 Thomas Schmitt
  *
  * This file is part of the libisofs project; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License version 2 
- * or later as published by the Free Software Foundation. 
+ * modify it under the terms of the GNU General Public License version 2
+ * or later as published by the Free Software Foundation.
  * See COPYING file for details.
  */
 
@@ -39,7 +39,7 @@
 #include <time.h>
 #include <string.h>
 #include <locale.h>
-#include <langinfo.h>
+//#include <langinfo.h>
 #include <stdio.h>
 
 #ifdef Xorriso_standalonE
@@ -147,7 +147,7 @@ static int show_chunk_to_jte(Ecma119Image *target, char *buf, int count)
 
     if (target->opts->libjte_handle == NULL)
         return ISO_SUCCESS;
-    ret = libjte_show_data_chunk(target->opts->libjte_handle, buf, count, 1); 
+    ret = libjte_show_data_chunk(target->opts->libjte_handle, buf, count, 1);
     if (ret <= 0) {
         iso_libjte_forward_msgs(target->opts->libjte_handle,
                                 target->image->id, ISO_LIBJTE_FILE_FAILED, 0);
@@ -953,7 +953,7 @@ int ecma119_writer_write_data(IsoImageWriter *writer)
         t->eff_partition_offset = t->opts->partition_offset;
         ret = ecma119_writer_write_dirs(writer);
         t->eff_partition_offset = 0;
-        if (ret < 0) 
+        if (ret < 0)
             goto ex;
     }
 
@@ -1157,12 +1157,12 @@ int zero_writer_write_data(IsoImageWriter *writer)
     t = writer->target;
     data = (struct iso_zero_writer_data_struct *) writer->data;
 
-    if (data->num_blocks == 0) 
+    if (data->num_blocks == 0)
         {ret = ISO_SUCCESS; goto ex;}
     LIBISO_ALLOC_MEM(pad, uint8_t, BLOCK_SIZE);
     for (i = 0; i < data->num_blocks; ++i) {
         ret = iso_write(t, pad, BLOCK_SIZE);
-        if (ret < 0) 
+        if (ret < 0)
             goto ex;
     }
     ret = ISO_SUCCESS;
@@ -1411,7 +1411,7 @@ int write_head_part1(Ecma119Image *target, int *write_count, int flag)
     for (i = 0; i < (int) target->nwriters; ++i) {
         writer = target->writers[i];
         res = writer->write_vol_desc(writer);
-        if (res < 0) 
+        if (res < 0)
             goto write_error;
     }
 
@@ -1532,7 +1532,7 @@ static int finish_libjte(Ecma119Image *target)
     if (target->opts->libjte_handle != NULL) {
         ret = libjte_write_footer(target->opts->libjte_handle);
         if (ret <= 0) {
-            iso_libjte_forward_msgs(target->opts->libjte_handle, 
+            iso_libjte_forward_msgs(target->opts->libjte_handle,
                                 target->image->id, ISO_LIBJTE_END_FAILED, 0);
             return ISO_LIBJTE_END_FAILED;
         }
@@ -1733,7 +1733,7 @@ int iso_ivr_parse(struct iso_interval_reader *ivr, char *path, int flag)
     ret = ISO_SUCCESS;
 ex:;
     return ret;
-}   
+}
 
 int iso_interval_reader_destroy(struct iso_interval_reader **ivr, int flag)
 {
@@ -2047,7 +2047,7 @@ process_pending:;
 /* Tells whether ivr is a reader from imported_iso in a multi-session
    add-on situation, and thus to be kept in place.
 */
-int iso_interval_reader_keep(Ecma119Image *target, 
+int iso_interval_reader_keep(Ecma119Image *target,
                              struct iso_interval_reader *ivr,
                              int flag)
 {
@@ -2150,7 +2150,7 @@ int iso_write_partition_file(Ecma119Image *target, char *path,
                 goto ex;
             }
         }
-        if (fp != NULL) 
+        if (fp != NULL)
             fclose(fp);
     }
     ret = ISO_SUCCESS;
@@ -2292,7 +2292,7 @@ write_error: ;
 
     /* Re-activate recorded cx xinfo */
     process_preserved_cx(target->image->root, 1);
-    
+
     target->image->generator_is_running = 0;
 
     /* Give up reference claim made in ecma119_image_new().
@@ -2447,7 +2447,7 @@ void ecma119_determine_now_time(Ecma119Image *target)
         } else if (t0 > now) {
             now = t0;
         }
-    } 
+    }
     target->now = now;
 }
 
@@ -2509,7 +2509,7 @@ int ecma119_image_new(IsoImage *src, IsoWriteOpts *in_opts, Ecma119Image **img)
     /* Record a copy of in_opts.
        It is a copy because in_opts is prone to manipulations from the
        application thread while the image production thread is running.
-    */ 
+    */
     ret = iso_write_opts_clone(in_opts, &(target->opts), 0);
     if (ret != ISO_SUCCESS)
         goto target_cleanup;
@@ -2667,13 +2667,13 @@ int ecma119_image_new(IsoImage *src, IsoWriteOpts *in_opts, Ecma119Image **img)
     if (opts->libjte_handle != NULL) {
         ret = libjte_write_header(opts->libjte_handle);
         if (ret <= 0) {
-            iso_libjte_forward_msgs(opts->libjte_handle, 
+            iso_libjte_forward_msgs(opts->libjte_handle,
                                 target->image->id, ISO_LIBJTE_START_FAILED, 0);
             ret = ISO_LIBJTE_START_FAILED;
             goto target_cleanup;
         }
     }
-    
+
 #endif /* Libisofs_with_libjtE */
 
     target->mipsel_e_entry = 0;
@@ -2933,7 +2933,7 @@ int ecma119_image_new(IsoImage *src, IsoWriteOpts *in_opts, Ecma119Image **img)
     ret = zero_writer_create(target, 0, 2);
 
 #else
-    
+
     ret = zero_writer_create(target, opts->tail_blocks, 1);
 
 #endif /* ! Libisofs_part_align_writeR */
@@ -2944,7 +2944,7 @@ int ecma119_image_new(IsoImage *src, IsoWriteOpts *in_opts, Ecma119Image **img)
 #ifdef Libisofs_appended_partitions_inlinE
 
     ret = partappend_writer_create(target);
-    if (ret < 0) 
+    if (ret < 0)
         goto target_cleanup;
 
 #endif /* Libisofs_appended_partitions_inlinE */
@@ -3028,10 +3028,10 @@ int ecma119_image_new(IsoImage *src, IsoWriteOpts *in_opts, Ecma119Image **img)
     continue;
 
         /* Exposing address of data start to IsoWriteOpts and memorizing
-           this address for all files which have no block address: 
+           this address for all files which have no block address:
            symbolic links, device files, empty data files.
            filesrc_writer_compute_data_blocks() and filesrc_writer_write_data()
-           will account resp. write this single block. 
+           will account resp. write this single block.
         */
         if (i == file_src_writer_index) {
             if (! opts->old_empty)
@@ -3161,14 +3161,14 @@ int ecma119_image_new(IsoImage *src, IsoWriteOpts *in_opts, Ecma119Image **img)
             }
             tag_pos++;
             write_count++;
-        } 
+        }
 
         /* Clean out eventual obsolete checksum tags */
         for (i = tag_pos; i < 32; i++) {
             int tag_type;
             uint32_t pos, range_start, range_size, next_tag;
             char md5[16];
- 	
+
             ret = iso_util_decode_md5_tag((char *)(opts->overwrite + i * 2048),
                                           &tag_type, &pos, &range_start,
                                           &range_size, &next_tag, md5, 0);
@@ -3440,7 +3440,7 @@ int iso_image_create_burn_source(IsoImage *image, IsoWriteOpts *opts,
         return ISO_OUT_OF_MEM;
     }
 
-    if (!opts->allow_deep_paths) { 
+    if (!opts->allow_deep_paths) {
         ret = make_reloc_dir_if_needed(image, opts, 0);
         if (ret < 0) {
             free(source);
@@ -4169,7 +4169,7 @@ int iso_write_opts_get_data_start(IsoWriteOpts *opts, uint32_t *data_start,
 
 /*
  * @param data     Either NULL or 32 kB of data. Do not submit less bytes !
- * @param options 
+ * @param options
  *        Can cause manipulations of submitted data before they get written:
  *        bit0= apply a --protective-msdos-label as of grub-mkisofs.
  *              This means to patch bytes 446 to 512 of the system area so
@@ -4211,7 +4211,7 @@ int iso_write_opts_set_system_area(IsoWriteOpts *opts, char data[32768],
     return ISO_SUCCESS;
 }
 
-int iso_write_opts_set_pvd_times(IsoWriteOpts *opts, 
+int iso_write_opts_set_pvd_times(IsoWriteOpts *opts,
                         time_t vol_creation_time, time_t vol_modification_time,
                         time_t vol_expiration_time, time_t vol_effective_time,
                         char *vol_uuid)
@@ -4266,7 +4266,7 @@ int iso_write_opts_detach_jte(IsoWriteOpts *opts, void **libjte_handle)
 
 #endif /* Libisofs_with_libjtE */
 }
- 
+
 int iso_write_opts_set_tail_blocks(IsoWriteOpts *opts, uint32_t num_blocks)
 {
     opts->tail_blocks = num_blocks;
@@ -4286,7 +4286,7 @@ int iso_write_opts_set_prep_img(IsoWriteOpts *opts, char *image_path, int flag)
     return ISO_SUCCESS;
 }
 
-int iso_write_opts_set_efi_bootp(IsoWriteOpts *opts, char *image_path, 
+int iso_write_opts_set_efi_bootp(IsoWriteOpts *opts, char *image_path,
                                  int flag)
 {
     if (opts->efi_boot_partition != NULL)
@@ -4372,15 +4372,15 @@ int iso_write_opts_set_disc_label(IsoWriteOpts *opts, char *label)
     opts->ascii_disc_label[ISO_DISC_LABEL_SIZE - 1] = 0;
     return ISO_SUCCESS;
 }
- 
+
 int iso_write_opts_set_hfsp_serial_number(IsoWriteOpts *opts,
                                           uint8_t serial_number[8])
 {
     memcpy(opts->hfsp_serial_number, serial_number, 8);
     return ISO_SUCCESS;
 }
- 
-int iso_write_opts_set_hfsp_block_size(IsoWriteOpts *opts, 
+
+int iso_write_opts_set_hfsp_block_size(IsoWriteOpts *opts,
                                      int hfsp_block_size, int apm_block_size)
 {
     if (hfsp_block_size != 0 && hfsp_block_size != 512 &&
@@ -4413,7 +4413,7 @@ int iso_write_opts_set_gpt_guid(IsoWriteOpts *opts, uint8_t guid[16], int mode)
  *                   1= Rock Ridge (to_charset is valid)
  *                   2= Joliet (to_charset gets overridden by UCS-2 or UTF-16)
  *                   3= ECMA-119 (dull ISO 9660 character set)
- *                   4= HFS+ (to_charset gets overridden by UTF-16BE) 
+ *                   4= HFS+ (to_charset gets overridden by UTF-16BE)
  *        bit8=  Treat input text as directory name
  *               (matters for Joliet and ECMA-119)
  *        bit9=  Do not issue error messages
@@ -4511,7 +4511,7 @@ int iso_conv_name_chars(IsoWriteOpts *opts, char *in_name, size_t name_len,
 
     } else if (name_space == 3) { /* ECMA-119 */
         ret = iso_get_ecma119_name(opts, from_charset, -1, name, node_type,
-                                   &conved, !!(flag & 512)); 
+                                   &conved, !!(flag & 512));
         if (ret != ISO_SUCCESS)
             goto ex;
         conved_len = strlen(conved);
@@ -4582,7 +4582,7 @@ void ecma119_filesrc_array(Ecma119Node *dir,
 
 
 static
-void hidden_filesrc_array(Ecma119Image *t, 
+void hidden_filesrc_array(Ecma119Image *t,
                           int (*include_item)(void *),
                           IsoFileSrc **filelist, size_t *size, int just_count)
 {

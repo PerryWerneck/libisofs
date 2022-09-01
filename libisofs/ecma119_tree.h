@@ -1,10 +1,10 @@
 /*
  * Copyright (c) 2007 Vreixo Formoso
  *               2012 - 2014 Thomas Schmitt
- * 
- * This file is part of the libisofs project; you can redistribute it and/or 
- * modify it under the terms of the GNU General Public License version 2 
- * or later as published by the Free Software Foundation. 
+ *
+ * This file is part of the libisofs project; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * or later as published by the Free Software Foundation.
  * See COPYING file for details.
  */
 
@@ -33,7 +33,7 @@ struct ecma119_dir_info
     size_t nchildren;
     Ecma119Node **children;
 
-    /* 
+    /*
      * Size of the dir, i.e., sum of the lengths of all directory records.
      * It is computed by calc_dir_size() [ecma119.c].
      * Note that this don't include the length of any SUSP Continuation
@@ -42,7 +42,7 @@ struct ecma119_dir_info
      */
     size_t len;
 
-    /** 
+    /**
      * Real parent if the dir has been reallocated. NULL otherwise.
      */
     Ecma119Node *real_parent;
@@ -66,7 +66,11 @@ struct ecma119_node
 
     uint32_t ino;
 
+#ifdef _WIN32
+    uint16_t nlink;
+#else
     nlink_t nlink;
+#endif // _WIN32
 
     /**< file, symlink, special, directory or placeholder */
     enum ecma119_node_type type;
@@ -91,7 +95,7 @@ int iso_filesrc_list_destroy(struct iso_filesrc_list_item **start_item);
 
 
 /**
- * 
+ *
  */
 int ecma119_tree_create(Ecma119Image *img);
 
