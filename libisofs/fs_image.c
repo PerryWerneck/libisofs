@@ -3,8 +3,8 @@
  * Copyright (c) 2009 - 2020 Thomas Schmitt
  *
  * This file is part of the libisofs project; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License version 2 
- * or later as published by the Free Software Foundation. 
+ * modify it under the terms of the GNU General Public License version 2
+ * or later as published by the Free Software Foundation.
  * See COPYING file for details.
  */
 
@@ -105,8 +105,8 @@ struct iso_read_opts
      *  0 = unmapped:  show name as recorded in ECMA-119 directory record
      *                 (not suitable for writing it to a new ISO filesystem)
      *  1 = stripped:  like unmapped, but strip off trailing ";1" or ".;1"
-     *  2 = uppercase: like stripped, but {a-z} mapped to {A-Z} 
-     *  3 = lowercase: like stripped, but {A-Z} mapped to {a-z} 
+     *  2 = uppercase: like stripped, but {a-z} mapped to {A-Z}
+     *  3 = lowercase: like stripped, but {A-Z} mapped to {a-z}
      */
     unsigned int ecma119_map : 2;
 
@@ -139,7 +139,7 @@ struct iso_read_opts
     int auto_input_charset;
 
 
-    /** 
+    /**
      * Enable or disable loading of the first 32768 bytes of the session and
      * submission by iso_write_opts_set_system_area(data, 0).
      */
@@ -190,7 +190,7 @@ struct iso_read_image_features
 
     /**
      * Which tree was loaded:
-     *   0= ISO 9660 + Rock Ridge , 1= Joliet , 2= ISO 9660:1999 
+     *   0= ISO 9660 + Rock Ridge , 1= Joliet , 2= ISO 9660:1999
      */
     int tree_loaded;
 
@@ -1186,7 +1186,7 @@ int ifs_clone_src(IsoFileSource *old_source,
         return ISO_STREAM_NO_CLONE; /* unknown option required */
 
     old_data = (ImageFileSourceData *) old_source->data;
-    *new_source = NULL; 
+    *new_source = NULL;
     src = calloc(1, sizeof(IsoFileSource));
     if (src == NULL)
         goto no_mem;
@@ -1215,7 +1215,7 @@ int ifs_clone_src(IsoFileSource *old_source,
     new_data->name = new_name;
     new_data->sections = new_sections;
     new_data->nsections = old_data->nsections;
-    for (i = 0; i < new_data->nsections; i++) 
+    for (i = 0; i < new_data->nsections; i++)
         memcpy(new_data->sections + i, old_data->sections + i,
                sizeof(struct iso_file_section));
     new_data->opened = old_data->opened;
@@ -1226,7 +1226,7 @@ int ifs_clone_src(IsoFileSource *old_source,
 #endif
     new_data->data.content = NULL;
     new_data->aa_string = (unsigned char *) new_aa_string;
-    
+
     src->class = old_source->class;
     src->refcount = 1;
     src->data = new_data;
@@ -1273,7 +1273,7 @@ IsoFileSourceIface ifs_class = {
 
 /* Used from libisofs/stream.c : iso_stream_get_src_zf() */
 int iso_ifs_source_get_zf(IsoFileSource *src, uint8_t zisofs_algo[2],
-                          int *header_size_div4, int *block_size_log2, 
+                          int *header_size_div4, int *block_size_log2,
                           uint64_t *uncompressed_size, int flag)
 {
 
@@ -1296,7 +1296,7 @@ int iso_ifs_source_get_zf(IsoFileSource *src, uint8_t zisofs_algo[2],
     return 0;
 
 #endif /* ! Libisofs_with_zliB */
-}     
+}
 
 
 static
@@ -1340,7 +1340,7 @@ int make_hopefully_unique_name(_ImageFsData *fsdata,
     name_len += 32;
     smashed[name_len] = 0;
     *name = smashed; smashed = NULL;
- 
+
     ret = ISO_SUCCESS;
 ex:
     LIBISO_FREE_MEM(smashed);
@@ -1628,7 +1628,7 @@ int iso_file_source_new_ifs(IsoImageFilesystem *fs, IsoFileSource *parent,
                                             "Invalid PX entry");
                     fsdata->px_ino_status |= 8;
                 } if (ret == 2) {
-                    if (fsdata->inode_counter < atts.st_ino) 
+                    if (fsdata->inode_counter < atts.st_ino)
                         fsdata->inode_counter = atts.st_ino;
                     fsdata->px_ino_status |= 1;
 
@@ -2442,13 +2442,13 @@ int read_root_susp_entries(_ImageFsData *data, uint32_t block)
     syslinux_sbi.susp_skip = 0;
     syslinux_fsi.fs_dev = &syslinux_dev;
     syslinux_fsi.fs_info = &syslinux_sbi;
-    
+
     ret = susp_rr_check_signatures(&syslinux_fsi, 1);
     fprintf(stderr, "--------- susp_rr_check_signatures == %d , syslinux_sbi.do_rr == %d\n", ret, syslinux_sbi.do_rr);
 }
-    
+
 #endif /* Libisofs_syslinux_tesT */
-    
+
 
     /*
      * TODO #00015 : take care of CD-ROM XA discs when reading SP entry
@@ -2784,7 +2784,7 @@ after_bootblocks:;
       if(data->catcontent == NULL) {
          data->catsize = 0;
          ret = ISO_OUT_OF_MEM;
-         goto ex; 
+         goto ex;
       }
       for(rx = 0; rx < bufsize; rx += BLOCK_SIZE) {
         rpt = (unsigned char *) (data->catcontent + rx);
@@ -2815,7 +2815,7 @@ int iso_src_check_sb_tree(IsoDataSource *src, uint32_t start_lba, int flag)
     void *ctx = NULL;
     uint32_t next_tag = 0, i;
 
-    LIBISO_ALLOC_MEM(block, char, 2048);    
+    LIBISO_ALLOC_MEM(block, char, 2048);
     ret = iso_md5_start(&ctx);
     if (ret < 0)
         goto ex;
@@ -3052,7 +3052,7 @@ int iso_image_filesystem_new(IsoDataSource *src, struct iso_read_opts *opts,
                     iso_msg_debug(data->msgid, "Found ISO 9660:1999");
                     data->iso1999 = 1;
                     root = (struct ecma119_dir_record*)sup->root_dir_record;
-                    data->evd_root_block = iso_read_bb(root->block, 4, NULL) + 
+                    data->evd_root_block = iso_read_bb(root->block, 4, NULL) +
                                            root->len_xa[0];
                     /* TODO #00021 : handle RR info in ISO 9660:1999 tree */
                 } else {
@@ -3651,7 +3651,7 @@ int iso_image_eval_boot_info_table(IsoImage *image, struct iso_read_opts *opts,
         }
         iso_stream_close(stream);
         stream = NULL;
-        
+
         memcpy(boot_info_found, boot_image_buf + 8, 16);
         boot_pvd_found = iso_read_lsb(boot_info_found, 4);
         image_pvd = (uint32_t) (opts->block + 16);
@@ -3660,7 +3660,7 @@ int iso_image_eval_boot_info_table(IsoImage *image, struct iso_read_opts *opts,
         if (image_pvd != boot_pvd_found &&
             image_pvd == 16 && boot_pvd_found < iso_image_size) {
             /* Check whether there is a PVD at boot_pvd_found
-               and whether it bears the same image size 
+               and whether it bears the same image size
              */
             ret = read_pvd_block(src, boot_pvd_found, buf, &alleged_size);
             if (ret == 1 &&
@@ -3746,7 +3746,7 @@ void iso_scan_hc_sh(uint32_t lba, int c, int h, int s, uint8_t *matches)
             if (res != lba) {
                 matches[(i / 8) * 32 + (j - 1)] &= ~(1 << (i % 8));
 /*
-            } else {    
+            } else {
                  if (matches[(i / 8) * 32 + (j - 1)] & (1 << (i % 8)))
                      fprintf(stderr,
                     "iso_scan_hc_sh :%d = %4d/%3d/%2d :  H/C= %3d  S/H= %2d\n",
@@ -3765,7 +3765,7 @@ void iso_get_hc_sh(uint8_t *matches, uint32_t iso_image_size,
 {
     int i, j, k;
     static int pref[][2] = {{64, 32}, {255, 63}}, prefs = 2;
-    
+
     *hc = *sh = 0;
 
     if (matches[0] & 1)
@@ -3935,7 +3935,7 @@ ex:
     LIBISO_FREE_MEM(buf);
     LIBISO_FREE_MEM(hc_sh);
     return ret;
-    
+
 }
 
 /* @return 0= no hybrid detected
@@ -3969,7 +3969,7 @@ int iso_analyze_isohybrid(IsoImage *image, int flag)
     if (ret > 0 && section_count > 0)
         eltorito_lba = sections[0].block;
     free(sections);
-    
+
     /* Check MBR whether it is ISOLINUX and learn LBA to which it points */
     if (!boot->seems_isohybrid_capable)
         goto try_grub2_mbr;
@@ -3988,7 +3988,7 @@ try_grub2_mbr:;
     /* Check for GRUB2 MBR patching */
     mbr_lba = iso_read_lsb64(sad + 0x1b0);
     if (mbr_lba / 4 - 1 == eltorito_lba)
-        return 2; 
+        return 2;
 
     return 0;
 }
@@ -4406,7 +4406,7 @@ int iso_analyze_gpt(IsoImage *image, IsoDataSource *src, int flag)
     /* sai->gpt_req_flags :
           bit0= GPT partitions may overlap
           >>> bit1= with bit0: neatly nested partitions
-                    without  : neatly divided disk 
+                    without  : neatly divided disk
     */
     for (i = 0; i < (int) sai->gpt_req_count && !(sai->gpt_req_flags & 1);
          i++) {
@@ -4742,7 +4742,7 @@ int iso_analyze_sun(IsoImage *image, IsoDataSource *src, int flag)
 
     /* SUN Disk Label for SUN SPARC */
     sai->system_area_options = (3 << 2);
-    
+
     return 1;
 }
 
@@ -4936,7 +4936,7 @@ int iso_impsysa_reduce_next_above(IsoImage *image, uint32_t block,
 
     /* PVD, path table, root directory of active and of first session */
     for (i = 0; i < sai->num_meta_struct_blocks; i++)
-        iso_impsysa_reduce_na(block, next_above, sai->meta_struct_blocks[i]); 
+        iso_impsysa_reduce_na(block, next_above, sai->meta_struct_blocks[i]);
 
     /* Partition tables */
     for (i = 0; i < sai->mbr_req_count; i++) {
@@ -5565,7 +5565,7 @@ int iso_eltorito_report(IsoImage *image, struct iso_impsysa_result *target,
         }
     }
 
-    ret = ISO_SUCCESS;    
+    ret = ISO_SUCCESS;
 ex:;
     LIBISO_FREE_MEM(msg);
     LIBISO_FREE_MEM(lba_mem);
@@ -5723,7 +5723,7 @@ ex:
 
 static
 int iso_analyze_system_area(IsoImage *image, IsoDataSource *src,
-                            struct iso_read_opts *opts, uint32_t image_size, 
+                            struct iso_read_opts *opts, uint32_t image_size,
                             int flag)
 {
     int ret, i, sao, sa_type, sa_sub;
@@ -6028,7 +6028,7 @@ int iso_image_import(IsoImage *image, IsoDataSource *src,
 
     if ((data->px_ino_status & (2 | 4 | 8)) || opts->make_new_ino) {
         /* Attach new inode numbers to any node which does not have one,
-           resp. to all nodes in case of opts->make_new_ino 
+           resp. to all nodes in case of opts->make_new_ino
         */
         if (opts->make_new_ino)
             hflag = 1; /* Equip all data files with new unique inos */
@@ -6068,7 +6068,7 @@ int iso_image_import(IsoImage *image, IsoDataSource *src,
             } else {
                 image->bootcat->bootimages[idx]->image = (IsoFile*)node;
             }
-            
+
 
             /* warn about hidden images */
             if (image->bootcat->bootimages[idx]->platform_id == 0xef) {
@@ -6098,7 +6098,7 @@ int iso_image_import(IsoImage *image, IsoDataSource *src,
             bootcat = (IsoBoot *) node;
             bootcat->lba = data->catblock;
             bootcat->size = data->catsize;
-            bootcat->content = NULL; 
+            bootcat->content = NULL;
             if (bootcat->size > 0) {
                 bootcat->content = calloc(1, bootcat->size);
                 if (bootcat->content == NULL) {
@@ -6156,7 +6156,7 @@ int iso_image_import(IsoImage *image, IsoDataSource *src,
                                    &(image->checksum_start_lba),
                                    &(image->checksum_end_lba),
                                    &(image->checksum_idx_count),
-                                   &checksum_size, checksum_type, 0); 
+                                   &checksum_size, checksum_type, 0);
         if (ret > 0)
             if (checksum_size != 16 || strcmp(checksum_type, "MD5") != 0)
                 ret = 0;

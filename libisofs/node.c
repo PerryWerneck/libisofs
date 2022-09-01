@@ -3,8 +3,8 @@
  * Copyright (c) 2009 - 2020 Thomas Schmitt
  *
  * This file is part of the libisofs project; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License version 2 
- * or later as published by the Free Software Foundation. 
+ * modify it under the terms of the GNU General Public License version 2
+ * or later as published by the Free Software Foundation.
  * See COPYING file for details.
  */
 
@@ -1270,7 +1270,7 @@ rr_reserved:;
 #ifdef Libisofs_debug_rr_reserveD
     fprintf(stderr, "libisofs_DEBUG: ISO_RR_NAME_RESERVED with '%s'\n", name);
 #endif
-    
+
     return ISO_RR_NAME_RESERVED;
 }
 
@@ -1535,6 +1535,7 @@ int iso_node_new_file(char *name, IsoStream *stream, IsoFile **file)
     return ISO_SUCCESS;
 }
 
+#ifdef S_IFLNK
 int iso_node_new_symlink(char *name, char *dest, IsoSymlink **link)
 {
     IsoSymlink *new;
@@ -1551,7 +1552,7 @@ int iso_node_new_symlink(char *name, char *dest, IsoSymlink **link)
 
     /* check if destination is valid */
     ret = iso_node_is_valid_link_dest(dest);
-    if (ret < 0) 
+    if (ret < 0)
         return ret;
 
     new = calloc(1, sizeof(IsoSymlink));
@@ -1569,6 +1570,7 @@ int iso_node_new_symlink(char *name, char *dest, IsoSymlink **link)
     *link = new;
     return ISO_SUCCESS;
 }
+#endif // S_IFLNK
 
 int iso_node_new_special(char *name, mode_t mode, dev_t dev,
                          IsoSpecial **special)
@@ -1807,15 +1809,15 @@ int attr_enlarge_list(char ***names, size_t **value_lengths, char ***values,
     void *newpt;
 
     newpt = realloc(*names, new_num * sizeof(char *));
-    if (newpt == NULL) 
+    if (newpt == NULL)
         return ISO_OUT_OF_MEM;
     *names = (char **) newpt;
     newpt = realloc(*values, new_num * sizeof(char *));
-    if (newpt == NULL) 
+    if (newpt == NULL)
         return ISO_OUT_OF_MEM;
     *values = (char **) newpt;
     newpt = realloc(*value_lengths, new_num * sizeof(size_t));
-    if (newpt == NULL) 
+    if (newpt == NULL)
         return ISO_OUT_OF_MEM;
     *value_lengths = (size_t *) newpt;
     return 1;
@@ -1826,13 +1828,13 @@ int attr_enlarge_list(char ***names, size_t **value_lengths, char ***values,
    attribute list returned by  m_* parameters.
    The m_* parameters have finally to be freed by a call with bit15 set.
    @param flag          Bitfield for control purposes
-                        bit0= delete all old names which begin by "user."     
+                        bit0= delete all old names which begin by "user."
                               (but not if bit2 is set)
                         bit2= delete the given names rather than overwrite
                               their content
                         bit3= with bit0: delete all old non-"isofs." names
                         bit4= do not overwrite value of empty name
-                        bit5= do not overwrite isofs attributes 
+                        bit5= do not overwrite isofs attributes
                         bit15= release memory and return 1
 */
 static
@@ -1868,7 +1870,7 @@ int iso_node_merge_xattr(IsoNode *node, size_t num_attrs, char **names,
                 if (strcmp(names[i], (*m_names)[j]) == 0)
                     break;
             }
-            if (i >= num_attrs) {    
+            if (i >= num_attrs) {
                 /* Delete unmatched pair */
                 free((*m_names)[j]);
                 (*m_names)[j] = NULL;
@@ -1938,7 +1940,7 @@ int iso_node_merge_xattr(IsoNode *node, size_t num_attrs, char **names,
                 if (strcmp(names[i], (*m_names)[j]) == 0)
                     continue;
             }
-            if (j < *m_num_attrs) /* Name is not new */ 
+            if (j < *m_num_attrs) /* Name is not new */
                 continue;
             (*m_names)[w] = strdup(names[i]);
             if ((*m_names)[w] == NULL)
@@ -1981,8 +1983,8 @@ int iso_node_set_attrs(IsoNode *node, size_t num_attrs, char **names,
 
     if (!(flag & 8))
         for (i = 0; i < num_attrs; i++)
-            if (strncmp(names[i], "user.", 5) != 0 && names[i][0] != 0) 
-                return ISO_AAIP_NON_USER_NAME;  
+            if (strncmp(names[i], "user.", 5) != 0 && names[i][0] != 0)
+                return ISO_AAIP_NON_USER_NAME;
     if ((flag & (2 | 4 | 16)) || !(flag & 8)) {
         /* Merge old and new lists */
         ret = iso_node_merge_xattr(
@@ -2050,7 +2052,7 @@ ex:;
     iso_node_merge_xattr(node, num_attrs, names, value_lengths, values,
                        &m_num, &m_names, &m_value_lengths, &m_values, 1 << 15);
     return ret;
-} 
+}
 
 
 static
@@ -2128,7 +2130,7 @@ int iso_attr_get_acl_text(size_t num_attrs, char **names,
         }
         break;
     }
-    
+
     if (*access_text == NULL && !(flag & 16)) {
         from_posix = 1;
         *access_text = calloc(42, 1); /* 42 for aaip_update_acl_st_mode */
@@ -2350,7 +2352,7 @@ int iso_node_set_acl_text(IsoNode *node, char *access_text, char *default_text,
     acl = NULL;
     value_lengths[num_attrs] = acl_len;
     num_attrs++;
-    
+
     /* Encode attributes and attach to node */
     ret = iso_node_set_attrs(node, num_attrs, names, value_lengths, values,
                              1 | 8);
@@ -2396,7 +2398,7 @@ mode_t iso_node_get_perms_wo_acl(const IsoNode *node)
     st_mode = iso_node_get_permissions(node);
 
     ret = iso_node_get_acl_text((IsoNode *) node, &a_text, &d_text, 16);
-    if (ret != 1) 
+    if (ret != 1)
         goto ex;
     aaip_cleanout_st_mode(a_text, &st_mode, 4 | 16);
 ex:;
@@ -2572,7 +2574,7 @@ int iso_px_ino_xinfo_cloner(void *old_data, void **new_data, int flag)
 {
     *new_data = NULL;
     if (flag)
-        return ISO_XINFO_NO_CLONE; 
+        return ISO_XINFO_NO_CLONE;
     *new_data = calloc(1, sizeof(ino_t));
     if (*new_data == NULL)
         return ISO_OUT_OF_MEM;
@@ -2597,7 +2599,7 @@ int iso_node_get_id(IsoNode *node, unsigned int *fs_id, dev_t *dev_id,
     IsoSymlink *symlink;
     IsoSpecial *special;
     void *xipt;
-    
+
     ret = iso_node_get_xinfo(node, iso_px_ino_xinfo_func, &xipt);
     if (ret < 0)
         goto no_id;
@@ -2676,7 +2678,7 @@ int iso_node_set_ino(IsoNode *node, ino_t ino, int flag)
     IsoSymlink *symlink;
     IsoSpecial *special;
     void *xipt;
-    
+
     ret = iso_node_get_xinfo(node, iso_px_ino_xinfo_func, &xipt);
     if (ret < 0)
         return ret;
@@ -2735,9 +2737,9 @@ int iso_node_set_unique_id(IsoNode *node, IsoImage *image, int flag)
  * the comparison must have the same non-zero result. I.e. a pair of applicable
  * and non-applicable node must return that non-zero result before the test
  * for a pair of applicable nodes would happen.
- * 
+ *
  * @param flag
- *     bit0= compare stat properties and attributes 
+ *     bit0= compare stat properties and attributes
  *     bit1= treat all nodes with image ino == 0 as unique
  */
 int iso_node_cmp_flag(IsoNode *n1, IsoNode *n2, int flag)
@@ -3077,7 +3079,7 @@ int iso_file_make_md5(IsoFile *file, int flag)
     if (file->from_old_session)
         dig = 1;
     md5 = calloc(16, 1);
-    if (md5 == NULL) 
+    if (md5 == NULL)
         return ISO_OUT_OF_MEM;
     ret = iso_stream_make_md5(file->stream, md5, dig);
     if (ret < 0) {

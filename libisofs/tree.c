@@ -1,10 +1,10 @@
 /*
  * Copyright (c) 2007 Vreixo Formoso
  * Copyright (c) 2011 - 2022 Thomas Schmitt
- * 
- * This file is part of the libisofs project; you can redistribute it and/or 
- * modify it under the terms of the GNU General Public License version 2 
- * or later as published by the Free Software Foundation. 
+ *
+ * This file is part of the libisofs project; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * or later as published by the Free Software Foundation.
  * See COPYING file for details.
  */
 
@@ -30,13 +30,17 @@
 #include <time.h>
 #include <limits.h>
 #include <stdio.h>
-#include <fnmatch.h>
 
+#ifdef _WIN32
+    #include <libiberty/libiberty.h>  // From mingw64-binutils-devel
+#else
+    #include <fnmatch.h>
+#endif // _WIN32
 
 /**
  * Add a new directory to the iso tree.
- * 
- * @param parent 
+ *
+ * @param parent
  *      the dir where the new directory will be created
  * @param name
  *      name for the new dir. If a node with same name already exists on
@@ -114,11 +118,11 @@ int iso_image_add_new_dir(IsoImage *image, IsoDir *parent, const char *name,
 }
 
 /**
- * Add a new symlink to the directory tree. Permissions are set to 0777, 
- * owner and hidden atts are taken from parent. You can modify any of them 
+ * Add a new symlink to the directory tree. Permissions are set to 0777,
+ * owner and hidden atts are taken from parent. You can modify any of them
  * later.
- *  
- * @param parent 
+ *
+ * @param parent
  *      the dir where the new symlink will be created
  * @param name
  *      name for the new dir. If a node with same name already exists on
@@ -207,30 +211,30 @@ int iso_image_add_new_symlink(IsoImage *image, IsoDir *parent,
  * an special file is a block device, a character device, a FIFO (named pipe)
  * or a socket. You can choose the specific kind of file you want to add
  * by setting mode properly (see man 2 stat).
- * 
- * Note that special files are only written to image when Rock Ridge 
+ *
+ * Note that special files are only written to image when Rock Ridge
  * extensions are enabled. Moreover, a special file is just a directory entry
  * in the image tree, no data is written beyond that.
- * 
- * Owner and hidden atts are taken from parent. You can modify any of them 
+ *
+ * Owner and hidden atts are taken from parent. You can modify any of them
  * later.
- * 
+ *
  * @param parent
  *      the dir where the new special file will be created
  * @param name
- *      name for the new special file. If a node with same name already exists 
+ *      name for the new special file. If a node with same name already exists
  *      on parent, this functions fails with ISO_NODE_NAME_NOT_UNIQUE.
  * @param mode
  *      file type and permissions for the new node. Note that you can't
  *      specify any kind of file here, only special types are allowed. i.e,
- *      S_IFSOCK, S_IFBLK, S_IFCHR and S_IFIFO are valid types; S_IFLNK, 
+ *      S_IFSOCK, S_IFBLK, S_IFCHR and S_IFIFO are valid types; S_IFLNK,
  *      S_IFREG and S_IFDIR aren't.
  * @param dev
  *      device ID, equivalent to the st_rdev field in man 2 stat.
  * @param special
- *      place where to store a pointer to the newly created special file. No 
- *      extra ref is added, so you will need to call iso_node_ref() if you 
- *      really need it. You can pass NULL in this parameter if you don't need 
+ *      place where to store a pointer to the newly created special file. No
+ *      extra ref is added, so you will need to call iso_node_ref() if you
+ *      really need it. You can pass NULL in this parameter if you don't need
  *      the pointer.
  * @return
  *     number of nodes in parent if success, < 0 otherwise
@@ -238,7 +242,7 @@ int iso_image_add_new_symlink(IsoImage *image, IsoDir *parent,
  *         ISO_NULL_POINTER, if parent, name or dest are NULL
  *         ISO_NODE_NAME_NOT_UNIQUE, a node with same name already exists
  *         ISO_OUT_OF_MEM
- * 
+ *
  */
 int iso_tree_add_new_special(IsoDir *parent, const char *name, mode_t mode,
                              dev_t dev, IsoSpecial **special)
@@ -306,11 +310,11 @@ int iso_image_add_new_special(IsoImage *image, IsoDir *parent,
 }
 
 /**
- * Add a new regular file to the iso tree. Permissions are set to 0444, 
- * owner and hidden atts are taken from parent. You can modify any of them 
+ * Add a new regular file to the iso tree. Permissions are set to 0444,
+ * owner and hidden atts are taken from parent. You can modify any of them
  * later.
- *  
- * @param parent 
+ *
+ * @param parent
  *      the dir where the new file will be created
  * @param name
  *      name for the new file. If a node with same name already exists on
@@ -328,10 +332,10 @@ int iso_image_add_new_special(IsoImage *image, IsoDir *parent,
  *         ISO_NULL_POINTER, if parent, name or dest are NULL
  *         ISO_NODE_NAME_NOT_UNIQUE, a node with same name already exists
  *         ISO_OUT_OF_MEM
- * 
+ *
  * @since 0.6.4
  */
-int iso_tree_add_new_file(IsoDir *parent, const char *name, IsoStream *stream, 
+int iso_tree_add_new_file(IsoDir *parent, const char *name, IsoStream *stream,
                           IsoFile **file)
 {
     int ret;
@@ -404,7 +408,7 @@ void iso_tree_set_follow_symlinks(IsoImage *image, int follow)
 
 /**
  * Get current setting for follow_symlinks.
- * 
+ *
  * @see iso_tree_set_follow_symlinks
  */
 int iso_tree_get_follow_symlinks(IsoImage *image)
@@ -423,7 +427,7 @@ void iso_tree_set_ignore_hidden(IsoImage *image, int skip)
 
 /**
  * Get current setting for ignore_hidden.
- * 
+ *
  * @see iso_tree_set_ignore_hidden
  */
 int iso_tree_get_ignore_hidden(IsoImage *image)
@@ -445,8 +449,8 @@ enum iso_replace_mode iso_tree_get_replace_mode(IsoImage *image)
  * Set whether to skip or not special files. Default behavior is to not skip
  * them. Note that, despite of this setting, special files won't never be added
  * to an image unless RR extensions were enabled.
- * 
- * @param skip 
+ *
+ * @param skip
  *      Bitmask to determine what kind of special files will be skipped:
  *          bit0: ignore FIFOs
  *          bit1: ignore Sockets
@@ -460,7 +464,7 @@ void iso_tree_set_ignore_special(IsoImage *image, int skip)
 
 /**
  * Get current setting for ignore_special.
- * 
+ *
  * @see iso_tree_set_ignore_special
  */
 int iso_tree_get_ignore_special(IsoImage *image)
@@ -472,16 +476,16 @@ int iso_tree_get_ignore_special(IsoImage *image)
  * Set a callback function that libisofs will call for each file that is
  * added to the given image by a recursive addition function. This includes
  * image import.
- *  
+ *
  * @param report
- *      pointer to a function that will be called just before a file will be 
- *      added to the image. You can control whether the file will be in fact 
+ *      pointer to a function that will be called just before a file will be
+ *      added to the image. You can control whether the file will be in fact
  *      added or ignored.
- *      This function should return 1 to add the file, 0 to ignore it and 
+ *      This function should return 1 to add the file, 0 to ignore it and
  *      continue, < 0 to abort the process
  *      NULL is allowed if you don't want any callback.
  */
-void iso_tree_set_report_callback(IsoImage *image, 
+void iso_tree_set_report_callback(IsoImage *image,
                                   int (*report)(IsoImage*, IsoFileSource*))
 {
     image->report = report;
@@ -490,14 +494,14 @@ void iso_tree_set_report_callback(IsoImage *image,
 /**
  * Add a excluded path. These are paths that won't never added to image,
  * and will be excluded even when adding recursively its parent directory.
- * 
+ *
  * For example, in
- * 
+ *
  * iso_tree_add_exclude(image, "/home/user/data/private");
  * iso_tree_add_dir_rec(image, root, "/home/user/data");
- * 
+ *
  * the directory /home/user/data/private won't be added to image.
- * 
+ *
  * @return
  *      1 on success, < 0 on error
  */
@@ -506,7 +510,7 @@ int iso_tree_add_exclude(IsoImage *image, const char *path)
     if (image == NULL || path == NULL) {
         return ISO_NULL_POINTER;
     }
-    image->excludes = realloc(image->excludes, ++image->nexcludes * 
+    image->excludes = realloc(image->excludes, ++image->nexcludes *
                               sizeof(void*));
     if (image->excludes == NULL) {
         return ISO_OUT_OF_MEM;
@@ -520,7 +524,7 @@ int iso_tree_add_exclude(IsoImage *image, const char *path)
 
 /**
  * Remove a previously added exclude.
- * 
+ *
  * @see iso_tree_add_exclude
  * @return
  *      1 on success, 0 exclude do not exists, < 0 on error
@@ -539,9 +543,9 @@ int iso_tree_remove_exclude(IsoImage *image, const char *path)
             free(image->excludes[i]);
             --image->nexcludes;
             for (j = i; (int) j < image->nexcludes; ++j) {
-                image->excludes[j] = image->excludes[j+1]; 
+                image->excludes[j] = image->excludes[j+1];
             }
-            image->excludes = realloc(image->excludes, image->nexcludes * 
+            image->excludes = realloc(image->excludes, image->nexcludes *
                                       sizeof(void*));
             return ISO_SUCCESS;
         }
@@ -618,7 +622,7 @@ int iso_tree_add_node(IsoImage *image, IsoDir *parent, const char *path,
     return result;
 }
 
-int iso_tree_add_new_node(IsoImage *image, IsoDir *parent, const char *name, 
+int iso_tree_add_new_node(IsoImage *image, IsoDir *parent, const char *name,
                           const char *path, IsoNode **node)
 {
     int result;
@@ -655,14 +659,14 @@ int iso_tree_add_new_node(IsoImage *image, IsoDir *parent, const char *name,
 
     result = image->builder->create_node(image->builder, image, file,
                                          namept, &new);
-    
+
     /* free the file */
     iso_file_source_unref(file);
-    
+
     if (result < 0) {
         return result;
     }
-    
+
     if (node) {
         *node = new;
     }
@@ -671,8 +675,8 @@ int iso_tree_add_new_node(IsoImage *image, IsoDir *parent, const char *name,
     return iso_dir_insert(parent, new, pos, ISO_REPLACE_NEVER);
 }
 
-int iso_tree_add_new_cut_out_node(IsoImage *image, IsoDir *parent, 
-                                  const char *name, const char *path, 
+int iso_tree_add_new_cut_out_node(IsoImage *image, IsoDir *parent,
+                                  const char *name, const char *path,
                                   off_t offset, off_t size,
                                   IsoNode **node)
 {
@@ -730,14 +734,14 @@ int iso_tree_add_new_cut_out_node(IsoImage *image, IsoDir *parent,
 
     /* force regular file */
     result = image->builder->create_file(image->builder, image, src, &new);
-    
+
     /* Give up the newly acquired surplus reference to src */
     iso_file_source_unref(src);
-    
+
     if (result < 0) {
         return result;
     }
-    
+
     /* replace file iso stream with a cut-out-stream */
     result = iso_cut_out_stream_new(src, offset, size, &stream);
     if (result < 0) {
@@ -746,7 +750,7 @@ int iso_tree_add_new_cut_out_node(IsoImage *image, IsoDir *parent,
     }
     iso_stream_unref(new->stream);
     new->stream = stream;
-    
+
     result = iso_node_set_name((IsoNode*)new, namept);
     if (result < 0) {
         iso_node_unref((IsoNode*)new);
@@ -764,6 +768,7 @@ int iso_tree_add_new_cut_out_node(IsoImage *image, IsoDir *parent,
 static
 int check_excludes(IsoImage *image, const char *path)
 {
+#ifndef _WIN32
     int i;
 
     for (i = 0; i < image->nexcludes; ++i) {
@@ -785,6 +790,7 @@ int check_excludes(IsoImage *image, const char *path)
             }
         }
     }
+#endif // _WIN32
     return 0;
 }
 
@@ -803,8 +809,10 @@ int check_special(IsoImage *image, mode_t mode)
             return image->ignore_special & 0x08 ? 1 : 0;
         case S_IFCHR:
             return image->ignore_special & 0x04 ? 1 : 0;
+#ifdef S_IFSOCK
         case S_IFSOCK:
             return image->ignore_special & 0x02 ? 1 : 0;
+#endif // S_IFSOCK
         case S_IFIFO:
             return image->ignore_special & 0x01 ? 1 : 0;
         default:
@@ -875,11 +883,11 @@ ex:;
 
 static
 int make_incrementable_name(char **name, char **unique_name, int *low_pos,
-                            int *rollover_carry, int *pre_check) 
+                            int *rollover_carry, int *pre_check)
 {
     char *dpt, *npt;
     int first, len, ret;
-    
+
     /* The incrementable part of the file shall have at least 7 characters.
        There may be up to pow(2.0,32.0)*2048/33 = 266548273400 files.
        The set of increment result characters has 63 elements.
@@ -986,7 +994,7 @@ ex:;
 
 /**
  * Recursively add a given directory to the image tree.
- * 
+ *
  * @return
  *      1 continue, < 0 error (ISO_CANCELED stop)
  */
@@ -1006,7 +1014,7 @@ int iso_add_dir_src_rec(IsoImage *image, IsoDir *parent, IsoFileSource *dir)
         path = iso_file_source_get_path(dir);
         /* instead of the probable error, we throw a sorry event */
 	if (path != NULL) {
-            ret = iso_msg_submit(image->id, ISO_FILE_CANT_ADD, ret, 
+            ret = iso_msg_submit(image->id, ISO_FILE_CANT_ADD, ret,
                                  "Can't open dir %s", path);
             free(path);
         } else {
@@ -1018,7 +1026,7 @@ int iso_add_dir_src_rec(IsoImage *image, IsoDir *parent, IsoFileSource *dir)
     dir_is_open = 1;
 
     builder = image->builder;
-    
+
     /* iterate over all directory children */
     while (1) {
         int skip = 0;
@@ -1035,7 +1043,7 @@ int iso_add_dir_src_rec(IsoImage *image, IsoDir *parent, IsoFileSource *dir)
 
         path = iso_file_source_get_path(file);
         if (path == NULL) {
-            ret = iso_msg_submit(image->id, ISO_NULL_POINTER, ret, 
+            ret = iso_msg_submit(image->id, ISO_NULL_POINTER, ret,
                                  "NULL pointer caught as file path");
             goto ex;
         }
@@ -1073,7 +1081,7 @@ int iso_add_dir_src_rec(IsoImage *image, IsoDir *parent, IsoFileSource *dir)
         ret = iso_dir_exists(parent, name, &pos);
         if (ret) {
             /* Resolve name collision
-               e.g. caused by fs_image.c:make_hopefully_unique_name() 
+               e.g. caused by fs_image.c:make_hopefully_unique_name()
             */
             LIBISO_FREE_MEM(allocated_name); allocated_name = NULL;
             ret = make_really_unique_name(parent, &name, &allocated_name, &pos,
@@ -1082,7 +1090,7 @@ int iso_add_dir_src_rec(IsoImage *image, IsoDir *parent, IsoFileSource *dir)
                 goto ex;
             image->collision_warnings++;
             if (image->collision_warnings < ISO_IMPORT_COLL_WARN_MAX) {
-                ret = iso_msg_submit(image->id, ISO_IMPORT_COLLISION, 0, 
+                ret = iso_msg_submit(image->id, ISO_IMPORT_COLLISION, 0,
                          "File name collision resolved with %s . Now: %s",
                          path, name);
                 if (ret < 0)
@@ -1130,7 +1138,7 @@ int iso_add_dir_src_rec(IsoImage *image, IsoDir *parent, IsoFileSource *dir)
 dir_rec_continue:;
         free(path);
         iso_file_source_unref(file);
-        
+
         /* check for error severity to decide what to do */
         if (ret < 0) {
             ret = iso_msg_submit(image->id, ret, 0, NULL);
@@ -1256,7 +1264,7 @@ char *iso_tree_get_node_path(IsoNode *node)
 
     if (node == NULL || node->parent == NULL)
         return NULL;
-    
+
     if ((IsoNode*)node->parent == node) {
         return strdup("/");
     } else {
@@ -1495,8 +1503,8 @@ int iso_tree_clone_special(IsoSpecial *node,
 /* @param flag bit0= Merge directories rather than ISO_NODE_NAME_NOT_UNIQUE.
                bit1= issue warning in case of truncation
 */
-int iso_tree_clone_trunc(IsoNode *node, IsoDir *new_parent, 
-                         char *new_name_in, IsoNode **new_node, 
+int iso_tree_clone_trunc(IsoNode *node, IsoDir *new_parent,
+                         char *new_name_in, IsoNode **new_node,
                          int truncate_length, int flag)
 {
     int ret = ISO_SUCCESS;
@@ -1529,7 +1537,7 @@ int iso_tree_clone_trunc(IsoNode *node, IsoDir *new_parent,
         ret = iso_tree_clone_dir((IsoDir *) node, new_parent, new_name,
                                  new_node, flag & 1);
     } else if (node->type == LIBISO_FILE) {
-        ret = iso_tree_clone_file((IsoFile *) node, new_parent, new_name, 
+        ret = iso_tree_clone_file((IsoFile *) node, new_parent, new_name,
                                   new_node, 0);
     } else if (node->type == LIBISO_SYMLINK) {
         ret = iso_tree_clone_symlink((IsoSymlink *) node, new_parent, new_name,
@@ -1561,7 +1569,7 @@ int iso_tree_clone(IsoNode *node,
                    int flag)
 {
     return iso_tree_clone_trunc(node, new_parent, new_name, new_node, 0,
-                                flag & 1); 
+                                flag & 1);
 }
 
 
@@ -1597,7 +1605,7 @@ int iso_tree_resolve_symlink(IsoImage *img, IsoSymlink *sym, IsoNode **res,
 
         /* ??? How to resolve absolute links without knowing the
                path of the future mount point ?
-           ??? Would it be better to throw error ? 
+           ??? Would it be better to throw error ?
            I can only assume that it gets mounted at / during some stage
            of booting.
         */;

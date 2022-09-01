@@ -1,10 +1,10 @@
 /*
  * Copyright (c) 2007 Vreixo Formoso
  * Copyright (c) 2009 - 2015 Thomas Schmitt
- * 
- * This file is part of the libisofs project; you can redistribute it and/or 
- * modify it under the terms of the GNU General Public License version 2 
- * or later as published by the Free Software Foundation. 
+ *
+ * This file is part of the libisofs project; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * or later as published by the Free Software Foundation.
  * See COPYING file for details.
  */
 
@@ -71,7 +71,7 @@ int default_create_file(IsoNodeBuilder *builder, IsoImage *image,
 
     /* take a ref to the src, as stream has taken our ref */
     iso_file_source_ref(src);
-    
+
     name = iso_file_source_get_name(src);
     if ((int) strlen(name) > image->truncate_length) {
         ret = iso_truncate_rr_name(image->truncate_mode,
@@ -160,7 +160,7 @@ int default_create_node(IsoNodeBuilder *builder, IsoImage *image,
             }
             /* take a ref to the src, as stream has taken our ref */
             iso_file_source_ref(src);
-            
+
             /* create the file */
             ret = iso_node_new_file(name, stream, &file);
             if (ret < 0) {
@@ -177,6 +177,7 @@ int default_create_node(IsoNodeBuilder *builder, IsoImage *image,
             new = (IsoNode*)dir;
         }
         break;
+#ifdef S_IFLNK
     case S_IFLNK:
         {
             /* source is a symbolic link */
@@ -196,14 +197,17 @@ int default_create_node(IsoNodeBuilder *builder, IsoImage *image,
             }
         }
         break;
+#endif // S_IFLNK
+#ifdef S_IFSOCK
     case S_IFSOCK:
+#endif // S_IFSOCK
     case S_IFBLK:
     case S_IFCHR:
     case S_IFIFO:
         {
             /* source is an special file */
             IsoSpecial *special;
-            ret = iso_node_new_special(name, info.st_mode, info.st_rdev, 
+            ret = iso_node_new_special(name, info.st_mode, info.st_rdev,
                                        &special);
             new = (IsoNode*) special;
             if (fs != NULL) {
@@ -219,7 +223,7 @@ int default_create_node(IsoNodeBuilder *builder, IsoImage *image,
         ret = ISO_BAD_FSRC_FILETYPE;
         goto ex;
     }
-    
+
     if (ret < 0)
         goto ex;
     name_is_attached = 1;

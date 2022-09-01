@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2008 Vreixo Formoso
- * 
- * This file is part of the libisofs project; you can redistribute it and/or 
- * modify it under the terms of the GNU General Public License version 2 
- * or later as published by the Free Software Foundation. 
+ *
+ * This file is part of the libisofs project; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * or later as published by the Free Software Foundation.
  * See COPYING file for details.
  */
 
@@ -14,14 +14,19 @@
 #include "libisofs.h"
 #include "node.h"
 
-#include <fnmatch.h>
+#ifdef _WIN32
+    #include <libiberty/libiberty.h>  // From mingw64-binutils-devel
+#else
+    #include <fnmatch.h>
+#endif // _WIN32
+
 #include <string.h>
 
 struct iso_find_condition
 {
     /*
      * Check whether the given node matches this condition.
-     * 
+     *
      * @param cond
      *      The condition to check
      * @param node
@@ -30,12 +35,12 @@ struct iso_find_condition
      *      1 if the node matches the condition, 0 if not
      */
     int (*matches)(IsoFindCondition *cond, IsoNode *node);
-    
+
     /**
      * Free condition specific data
      */
     void (*free)(IsoFindCondition*);
-    
+
     /** condition specific data */
     void *data;
 };
@@ -49,14 +54,14 @@ struct find_iter_data
     int err; /**< error? */
     IsoNode *current; /**< node to be returned next */
     IsoNode *prev; /**< last returned node, needed for removal */
-    int free_cond; /**< whether to free cond on iter_free */ 
+    int free_cond; /**< whether to free cond on iter_free */
 };
 
-static 
+static
 int get_next(struct find_iter_data *iter, IsoNode **n)
 {
     int ret;
-    
+
     if (iter->itersec != NULL) {
         ret = iso_dir_iter_next(iter->itersec, n);
         if (ret <= 0) {
@@ -69,8 +74,8 @@ int get_next(struct find_iter_data *iter, IsoNode **n)
             return ret;
         }
     }
-    
-    /* 
+
+    /*
      * we reach here if:
      * - no secondary item is present
      * - secondary item has no more items
@@ -82,7 +87,7 @@ int get_next(struct find_iter_data *iter, IsoNode **n)
         } else if (ISO_NODE_IS_DIR(*n)) {
             /* recurse on child dir */
             struct find_iter_data *data;
-            ret = iso_dir_find_children((IsoDir*)*n, iter->cond, 
+            ret = iso_dir_find_children((IsoDir*)*n, iter->cond,
                                         &iter->itersec);
             if (ret < 0) {
                 return ret;
@@ -106,13 +111,13 @@ void update_next(IsoDirIter *iter)
         iso_node_unref(data->prev);
     }
     data->prev = data->current;
-    
-    if (data->itersec == NULL && data->current != NULL 
+
+    if (data->itersec == NULL && data->current != NULL
             && ISO_NODE_IS_DIR(data->current)) {
-        
+
         /* we need to recurse on child dir */
         struct find_iter_data *data2;
-        ret = iso_dir_find_children((IsoDir*)data->current, data->cond, 
+        ret = iso_dir_find_children((IsoDir*)data->current, data->cond,
                                     &data->itersec);
         if (ret < 0) {
             data->current = NULL;
@@ -122,7 +127,7 @@ void update_next(IsoDirIter *iter)
         data2 = data->itersec->data;
         data2->free_cond = 0; /* we don't need sec iter to free cond */
     }
-    
+
     ret = get_next(data, &n);
     iso_node_unref((IsoNode*)iter->dir);
     if (ret == 1) {
@@ -142,12 +147,12 @@ static
 int find_iter_next(IsoDirIter *iter, IsoNode **node)
 {
     struct find_iter_data *data;
-    
+
     if (iter == NULL || node == NULL) {
         return ISO_NULL_POINTER;
     }
     data = iter->data;
-    
+
     if (data->err < 0) {
         return data->err;
     }
@@ -160,7 +165,7 @@ static
 int find_iter_has_next(IsoDirIter *iter)
 {
     struct find_iter_data *data = iter->data;
-    
+
     return (data->current != NULL);
 }
 
@@ -172,7 +177,7 @@ void find_iter_free(IsoDirIter *iter)
         data->cond->free(data->cond);
         free(data->cond);
     }
-    
+
     iso_node_unref((IsoNode*)data->dir);
 
     /* free refs to nodes */
@@ -213,7 +218,7 @@ int find_iter_remove(IsoDirIter *iter)
 void find_notify_child_taken(IsoDirIter *iter, IsoNode *node)
 {
     struct find_iter_data *data = iter->data;
-    
+
     if (data->prev == node) {
         /* free our ref */
         iso_node_unref(node);
@@ -235,7 +240,7 @@ struct iso_dir_iter_iface find_iter_class = {
         find_notify_child_taken
 };
 
-int iso_dir_find_children(IsoDir* dir, IsoFindCondition *cond, 
+int iso_dir_find_children(IsoDir* dir, IsoFindCondition *cond,
                           IsoDirIter **iter)
 {
     int ret;
@@ -271,20 +276,20 @@ int iso_dir_find_children(IsoDir* dir, IsoFindCondition *cond,
     data->err = 0;
     data->prev = data->current = NULL;
     it->data = data;
-    
+
     if (iso_dir_iter_register(it) < 0) {
         free(it);
         return ISO_OUT_OF_MEM;
     }
 
     iso_node_ref((IsoNode*)dir);
-    
+
     /* take another ref to the original dir */
     data->dir = (IsoDir*)dir;
     iso_node_ref((IsoNode*)dir);
 
     update_next(it);
-    
+
     *iter = it;
     return ISO_SUCCESS;
 }
@@ -308,11 +313,11 @@ void cond_name_free(IsoFindCondition *cond)
 /**
  * Create a new condition that checks if the node name matches the given
  * wildcard.
- * 
+ *
  * @param wildcard
  * @result
  *      The created IsoFindCondition, NULL on error.
- * 
+ *
  * @since 0.6.4
  */
 IsoFindCondition *iso_new_find_conditions_name(const char *wildcard)
@@ -349,18 +354,18 @@ void cond_mode_free(IsoFindCondition *cond)
 /**
  * Create a new condition that checks the node mode against a mode mask. It
  * can be used to check both file type and permissions.
- * 
+ *
  * For example:
- * 
+ *
  * iso_new_find_conditions_mode(S_IFREG) : search for regular files
- * iso_new_find_conditions_mode(S_IFCHR | S_IWUSR) : search for character 
+ * iso_new_find_conditions_mode(S_IFCHR | S_IWUSR) : search for character
  *     devices where owner has write permissions.
- * 
+ *
  * @param mask
  *      Mode mask to AND against node mode.
  * @result
  *      The created IsoFindCondition, NULL on error.
- * 
+ *
  * @since 0.6.4
  */
 IsoFindCondition *iso_new_find_conditions_mode(mode_t mask)
@@ -400,12 +405,12 @@ void cond_gid_free(IsoFindCondition *cond)
 
 /**
  * Create a new condition that checks the node gid.
- * 
+ *
  * @param gid
  *      Desired Group Id.
  * @result
  *      The created IsoFindCondition, NULL on error.
- * 
+ *
  * @since 0.6.4
  */
 IsoFindCondition *iso_new_find_conditions_gid(gid_t gid)
@@ -445,12 +450,12 @@ void cond_uid_free(IsoFindCondition *cond)
 
 /**
  * Create a new condition that checks the node uid.
- * 
+ *
  * @param uid
  *      Desired User Id.
  * @result
  *      The created IsoFindCondition, NULL on error.
- * 
+ *
  * @since 0.6.4
  */
 IsoFindCondition *iso_new_find_conditions_uid(uid_t uid)
@@ -487,13 +492,13 @@ int cond_time_matches(IsoFindCondition *cond, IsoNode *node)
 {
     time_t node_time;
     struct cond_times *data = cond->data;
-    
+
     switch (data->what_time) {
     case 0: node_time = node->atime; break;
     case 1: node_time = node->mtime; break;
     default: node_time = node->ctime; break;
     }
-    
+
     switch (data->comparison) {
     case ISO_FIND_COND_GREATER:
         return node_time > data->time ? 1 : 0;
@@ -518,7 +523,7 @@ void cond_time_free(IsoFindCondition *cond)
 
 /**
  * Create a new condition that checks the time of last access.
- * 
+ *
  * @param time
  *      Time to compare against IsoNode atime.
  * @param comparison
@@ -527,10 +532,10 @@ void cond_time_free(IsoFindCondition *cond)
  *      time is greater than the submitted time.
  * @result
  *      The created IsoFindCondition, NULL on error.
- * 
+ *
  * @since 0.6.4
  */
-IsoFindCondition *iso_new_find_conditions_atime(time_t time, 
+IsoFindCondition *iso_new_find_conditions_atime(time_t time,
                       enum iso_find_comparisons comparison)
 {
     IsoFindCondition *cond;
@@ -555,7 +560,7 @@ IsoFindCondition *iso_new_find_conditions_atime(time_t time,
 
 /**
  * Create a new condition that checks the time of last modification.
- * 
+ *
  * @param time
  *      Time to compare against IsoNode mtime.
  * @param comparison
@@ -564,10 +569,10 @@ IsoFindCondition *iso_new_find_conditions_atime(time_t time,
  *      time is greater than the submitted time.
  * @result
  *      The created IsoFindCondition, NULL on error.
- * 
+ *
  * @since 0.6.4
  */
-IsoFindCondition *iso_new_find_conditions_mtime(time_t time, 
+IsoFindCondition *iso_new_find_conditions_mtime(time_t time,
                       enum iso_find_comparisons comparison)
 {
     IsoFindCondition *cond;
@@ -592,7 +597,7 @@ IsoFindCondition *iso_new_find_conditions_mtime(time_t time,
 
 /**
  * Create a new condition that checks the time of last status change.
- * 
+ *
  * @param time
  *      Time to compare against IsoNode ctime.
  * @param comparison
@@ -601,10 +606,10 @@ IsoFindCondition *iso_new_find_conditions_mtime(time_t time,
  *      time is greater than the submitted time.
  * @result
  *      The created IsoFindCondition, NULL on error.
- * 
+ *
  * @since 0.6.4
  */
-IsoFindCondition *iso_new_find_conditions_ctime(time_t time, 
+IsoFindCondition *iso_new_find_conditions_ctime(time_t time,
                       enum iso_find_comparisons comparison)
 {
     IsoFindCondition *cond;
@@ -656,16 +661,16 @@ int cond_logical_and_matches(IsoFindCondition *cond, IsoNode *node)
 /**
  * Create a new condition that check if the two given conditions are
  * valid.
- * 
+ *
  * @param a
  * @param b
  *      IsoFindCondition to compare
  * @result
  *      The created IsoFindCondition, NULL on error.
- * 
+ *
  * @since 0.6.4
  */
-IsoFindCondition *iso_new_find_conditions_and(IsoFindCondition *a, 
+IsoFindCondition *iso_new_find_conditions_and(IsoFindCondition *a,
                                               IsoFindCondition *b)
 {
     IsoFindCondition *cond;
@@ -695,18 +700,18 @@ int cond_logical_or_matches(IsoFindCondition *cond, IsoNode *node)
 }
 
 /**
- * Create a new condition that check if at least one the two given conditions 
+ * Create a new condition that check if at least one the two given conditions
  * is valid.
- * 
+ *
  * @param a
  * @param b
  *      IsoFindCondition to compare
  * @result
  *      The created IsoFindCondition, NULL on error.
- * 
+ *
  * @since 0.6.4
  */
-IsoFindCondition *iso_new_find_conditions_or(IsoFindCondition *a, 
+IsoFindCondition *iso_new_find_conditions_or(IsoFindCondition *a,
                                               IsoFindCondition *b)
 {
     IsoFindCondition *cond;
@@ -745,11 +750,11 @@ int cond_not_matches(IsoFindCondition *cond, IsoNode *node)
 
 /**
  * Create a new condition that check if the given conditions is false.
- * 
+ *
  * @param negate
  * @result
  *      The created IsoFindCondition, NULL on error.
- * 
+ *
  * @since 0.6.4
  */
 IsoFindCondition *iso_new_find_conditions_not(IsoFindCondition *negate)

@@ -7,20 +7,20 @@
  * Copyright (c) 2009-2022 Thomas Schmitt
  *
  * This file is part of the libisofs project; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License version 2 
- * or later as published by the Free Software Foundation. 
+ * modify it under the terms of the GNU General Public License version 2
+ * or later as published by the Free Software Foundation.
  * See COPYING file for details.
  */
 
 /* Important: If you add a public API function then add its name to file
-                 libisofs/libisofs.ver 
+                 libisofs/libisofs.ver
 */
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* 
+/*
  *
  * Applications must use 64 bit off_t.
  * E.g. on 32-bit GNU/Linux by defining
@@ -29,7 +29,7 @@ extern "C" {
  * The minimum requirement is to interface with the library by 64 bit signed
  * integers where libisofs.h or libisoburn.h prescribe off_t.
  * Failure to do so may result in surprising malfunction or memory faults.
- * 
+ *
  * Application files which include libisofs/libisofs.h must provide
  * definitions for uint32_t and uint8_t.
  * This can be achieved either:
@@ -881,7 +881,7 @@ struct IsoFileSource_Iface
     /**
      * Produce a copy of a source. It must be possible to operate both source
      * objects concurrently.
-     * 
+     *
      * @param old_src
      *     The existing source object to be copied
      * @param new_stream
@@ -893,7 +893,7 @@ struct IsoFileSource_Iface
      * @since 1.0.2
      * Present if .version is 2 or higher.
      */
-    int (*clone_src)(IsoFileSource *old_src, IsoFileSource **new_src, 
+    int (*clone_src)(IsoFileSource *old_src, IsoFileSource **new_src,
                      int flag);
 
     /*
@@ -977,7 +977,7 @@ extern ino_t serial_id;
  * implementation of own stream types.
  * The methods defined here typically make use of stream.data which points
  * to the individual state data of stream instances.
- * 
+ *
  * @since 0.6.4
  */
 
@@ -987,7 +987,7 @@ struct IsoStream_Iface
      * Current version of the interface.
      * Version 0 (since 0.6.4)
      *    deprecated but still valid.
-     * Version 1 (since 0.6.8) 
+     * Version 1 (since 0.6.8)
      *    update_size() added.
      * Version 2 (since 0.6.18)
      *    get_input_stream() added.
@@ -1131,9 +1131,9 @@ struct IsoStream_Iface
      *                       iso_stream_get_input_stream(s2, 0), 0);
      *
      * The stream.cmp_ino() function has to establish an equivalence and order
-     * relation: 
+     * relation:
      *   cmp_ino(A,A) == 0
-     *   cmp_ino(A,B) == -cmp_ino(B,A) 
+     *   cmp_ino(A,B) == -cmp_ino(B,A)
      *   if cmp_ino(A,B) == 0 && cmp_ino(B,C) == 0 then cmp_ino(A,C) == 0
      * Most tricky is the demand for transitivity:
      *   if cmp_ino(A,B) < 0 && cmp_ino(B,C) < 0 then cmp_ino(A,C) < 0
@@ -1153,7 +1153,7 @@ struct IsoStream_Iface
     /**
      * Produce a copy of a stream. It must be possible to operate both stream
      * objects concurrently.
-     * 
+     *
      * @param old_stream
      *     The existing stream object to be copied
      * @param new_stream
@@ -1321,7 +1321,7 @@ void iso_image_set_ignore_aclea(IsoImage *image, int what);
  *     The image to be inquired
  * @return
  *    The currently set value.
- * 
+ *
  * @since 1.5.0
  */
 int iso_image_get_ignore_aclea(IsoImage *image);
@@ -1377,7 +1377,7 @@ void iso_write_opts_free(IsoWriteOpts *opts);
  * This avoids to create a write thread which would begin production of the
  * image stream and would generate a MISHAP event when burn_source.cancel()
  * gets into effect.
- * 
+ *
  * @param opts
  *      The option set to be manipulated.
  * @param will_cancel
@@ -1454,7 +1454,7 @@ int iso_write_opts_set_joliet(IsoWriteOpts *opts, int enable);
  * It will get marked by an Apple Partition Map in the System Area of the ISO
  * image. This may collide with data submitted by
  *   iso_write_opts_set_system_area()
- * and with settings made by 
+ * and with settings made by
  *   el_torito_set_isolinux_options()
  * The first 8 bytes of the System Area get overwritten by
  *   {0x45, 0x52, 0x08 0x00, 0xeb, 0x02, 0xff, 0xff}
@@ -1561,7 +1561,7 @@ int iso_write_opts_set_iso1999(IsoWriteOpts *opts, int enable);
  * inode numbers from the old ISO image (see iso_read_opts_set_new_inos())
  * and which have not been altered since import. It rather applies to IsoNode
  * objects which were newly added to the image, or to IsoNode which brought no
- * inode number from the old image, or to IsoNode where certain properties 
+ * inode number from the old image, or to IsoNode where certain properties
  * have been altered since image import.
  *
  * If two IsoNode are found with same imported inode number but differing
@@ -1570,7 +1570,7 @@ int iso_write_opts_set_iso1999(IsoWriteOpts *opts, int enable);
  *
  * @param opts
  *      The option set to be manipulated.
- * @param enable 
+ * @param enable
  *      1 = Collect IsoNode objects which have identical data sources and
  *          properties.
  *      0 = Generate unique inode numbers for all IsoNode objects which do not
@@ -1620,7 +1620,7 @@ int iso_write_opts_set_old_empty(IsoWriteOpts *opts, int enable);
 
 /**
  * Caution: This option breaks any assumptions about names that
- *          are supported by ECMA-119 specifications. 
+ *          are supported by ECMA-119 specifications.
  * Try to omit any translation which would make a file name compliant to the
  * ECMA-119 rules. This includes and exceeds omit_version_numbers,
  * max_37_char_filenames, no_force_dots bit0, allow_full_ascii. Further it
@@ -1649,7 +1649,7 @@ int iso_write_opts_set_untranslated_name_len(IsoWriteOpts *opts, int len);
 /**
  * Convert directory names for ECMA-119 similar to other file names, but do
  * not force a dot or add a version number.
- * This violates ECMA-119 by allowing one "." and especially ISO level 1 
+ * This violates ECMA-119 by allowing one "." and especially ISO level 1
  * by allowing DOS style 8.3 names rather than only 8 characters.
  * (mkisofs and its clones seem to do this violation.)
  * @param opts
@@ -1783,7 +1783,7 @@ int iso_write_opts_set_allow_full_ascii(IsoWriteOpts *opts, int allow);
  * Allow all 7-bit characters that would be allowed by allow_full_ascii, but
  * map lowercase to uppercase if iso_write_opts_set_allow_lowercase()
  * is not set to 1.
- * @param opts    
+ * @param opts
  *      The option set to be manipulated.
  * @param allow
  *      If not zero, then allow what is described above.
@@ -1811,7 +1811,7 @@ int iso_write_opts_set_joliet_longer_paths(IsoWriteOpts *opts, int allow);
 
 /**
  * Allow leaf names in the Joliet tree to have up to 103 characters.
- * Normal limit is 64. 
+ * Normal limit is 64.
  * This breaks Joliet specification. Use with caution.
  *
  * @since 1.0.6
@@ -1844,7 +1844,7 @@ int iso_write_opts_set_rrip_version_1_10(IsoWriteOpts *opts, int oldvers);
  * a while and no widespread protest is visible in the web.
  * If this option is not enabled, then iso_write_opts_set_hardlinks() will
  * only have an effect with iso_write_opts_set_rrip_version_1_10(,0).
- * 
+ *
  * @since 0.6.20
  */
 int iso_write_opts_set_rrip_1_10_px_ino(IsoWriteOpts *opts, int enable);
@@ -1855,7 +1855,7 @@ int iso_write_opts_set_rrip_1_10_px_ino(IsoWriteOpts *opts, int enable);
  * to precede the RRIP fields and the AAIP field by ES fields.
  * This saves 5 to 10 bytes per file and might avoid problems with readers
  * which dislike ER fields other than the ones for RRIP.
- * On the other hand, SUSP 1.12 frowns on such unannounced extensions 
+ * On the other hand, SUSP 1.12 frowns on such unannounced extensions
  * and prescribes ER and ES. It does this since the year 1994.
  *
  * In effect only if above iso_write_opts_set_aaip() enables writing of AAIP.
@@ -1879,12 +1879,12 @@ int iso_write_opts_set_aaip_susp_1_10(IsoWriteOpts *opts, int oldvers);
  * To enable mtime for all three directory trees, submit 7.
  * To disable this feature completely, submit 0.
  *
- * @param opts    
+ * @param opts
  *      The option set to be manipulated.
  * @param allow
  *      If this parameter is negative, then mtime is enabled only for ECMA-119.
  *      With positive numbers, the parameter is interpreted as bit field :
- *          bit0= enable mtime for ECMA-119 
+ *          bit0= enable mtime for ECMA-119
  *          bit1= enable mtime for Joliet and ECMA-119
  *          bit2= enable mtime for ISO 9660:1999 and ECMA-119
  *          bit14= disable mtime for ECMA-119 although some of the other bits
@@ -1932,7 +1932,7 @@ int iso_write_opts_set_sort_files(IsoWriteOpts *opts, int sort);
  *                   time point when the last block was read for writing.
  *                   So there is high risk that the image stream was fed from
  *                   changing and possibly inconsistent file content.
- *                   
+ *
  * @since 0.6.22
  */
 int iso_write_opts_set_record_md5(IsoWriteOpts *opts, int session, int files);
@@ -2003,6 +2003,10 @@ int iso_write_opts_set_default_dir_mode(IsoWriteOpts *opts, mode_t dir_mode);
  */
 int iso_write_opts_set_default_file_mode(IsoWriteOpts *opts, mode_t file_mode);
 
+#ifdef _WIN32
+	typedef int uid_t;
+#endif // _WIN32
+
 /**
  * Set the uid to use when you set the replace_uid to 2.
  *
@@ -2017,6 +2021,7 @@ int iso_write_opts_set_default_uid(IsoWriteOpts *opts, uid_t uid);
  * @see iso_write_opts_set_replace_mode
  * @since 0.6.2
  */
+typedef int gid_t;
 int iso_write_opts_set_default_gid(IsoWriteOpts *opts, gid_t gid);
 
 /**
@@ -2076,7 +2081,7 @@ int iso_write_opts_set_output_charset(IsoWriteOpts *opts, const char *charset);
  *
  * A stand-alone image is an image that does not need the old image any more
  * for being mounted by the operating system or imported by libisofs. It may
- * be written beginning with byte 0 of optical media or disk file objects. 
+ * be written beginning with byte 0 of optical media or disk file objects.
  * There will be no distinction between files from the old image and those
  * which have been added by the new image generation.
  *
@@ -2094,7 +2099,7 @@ int iso_write_opts_set_output_charset(IsoWriteOpts *opts, const char *charset);
  *
  * If you have not imported a previous image by iso_image_import(), then the
  * image will always be a stand-alone image, as there is no previous data to
- * refer to. 
+ * refer to.
  *
  * @param opts
  *      The option set to be manipulated.
@@ -2184,7 +2189,7 @@ int iso_write_opts_set_overwrite_buf(IsoWriteOpts *opts, uint8_t *overwrite);
 int iso_write_opts_set_fifo_size(IsoWriteOpts *opts, size_t fifo_size);
 
 /*
- * Attach 32 kB of binary data which shall get written to the first 32 kB 
+ * Attach 32 kB of binary data which shall get written to the first 32 kB
  * of the ISO image, the ECMA-119 System Area. This space is intended for
  * system dependent boot software, e.g. a Master Boot Record which allows to
  * boot from USB sticks or hard disks. ECMA-119 makes no own assumptions or
@@ -2209,7 +2214,7 @@ int iso_write_opts_set_fifo_size(IsoWriteOpts *opts, size_t fifo_size);
  *        bit1= Only with System area type 0 = MBR
  *              Apply isohybrid MBR patching to the system area.
  *              This works only with system area data from SYSLINUX plus an
- *              ISOLINUX boot image as first submitted boot image 
+ *              ISOLINUX boot image as first submitted boot image
  *              (see iso_image_set_boot_image()) and only if not bit0 is set.
  *        bit2-7= System area type
  *              0= with bit0 or bit1: MBR
@@ -2235,7 +2240,7 @@ int iso_write_opts_set_fifo_size(IsoWriteOpts *opts, size_t fifo_size);
  *                 data.
  *              4= HP-PA PALO boot sector version 4 for HP PA-RISC
  *                 @since 1.3.8
- *                 Suitable for older PALO of e.g. Debian 4 and 5. 
+ *                 Suitable for older PALO of e.g. Debian 4 and 5.
  *                 Submit all five parameters of iso_image_set_hppa_palo():
  *                   cmdline, bootloader, kernel_32, kernel_64, ramdisk
  *              5= HP-PA PALO boot sector version 5 for HP PA-RISC
@@ -2374,7 +2379,7 @@ int iso_write_opts_set_pvd_times(IsoWriteOpts *opts,
  * conventional partition table which makes it mountable on e.g. Linux via
  * /dev/sdb and /dev/sdb1 alike.
  * IMPORTANT: When submitting memory by iso_write_opts_set_overwrite_buf()
- *            then its size must be at least 64 KiB + partition offset. 
+ *            then its size must be at least 64 KiB + partition offset.
  *
  * @param opts
  *        The option set to be manipulated.
@@ -2407,7 +2412,7 @@ int iso_write_opts_set_part_offset(IsoWriteOpts *opts,
 #define iso_libjte_req_minor 0
 #define iso_libjte_req_micro 0
 
-/** 
+/**
  * Associate a libjte environment object to the upcoming write run.
  * libjte implements Jigdo Template Extraction as of Steve McIntyre and
  * Richard Atterer.
@@ -2435,7 +2440,7 @@ int iso_write_opts_attach_jte(IsoWriteOpts *opts, void *libjte_handle);
  *        The option set to be manipulated.
  * @param libjte_handle
  *        If not submitted as NULL, this will return the previously set
- *        libjte handle. 
+ *        libjte handle.
  * @return
  *        ISO_SUCCESS or error
  *
@@ -2506,7 +2511,7 @@ int iso_write_opts_set_tail_blocks(IsoWriteOpts *opts, uint32_t num_blocks);
  *                     its partition table blocks. But not the block 0 itself,
  *                     because it could be actually MBR x86 machine code.
  *  $zero_start"-"$zero_end ... demands to zeroize the read-in bytes beginning
- *                     with number $zero_start and ending after $zero_end. 
+ *                     with number $zero_start and ending after $zero_end.
  * The component $source is the file path with "local_fs", and ignored with
  * "imported_iso".
  * Byte numbers may be scaled by a suffix out of {k,m,g,t,s,d} meaning
@@ -2552,9 +2557,9 @@ int iso_interval_reader_new(IsoImage *img, char *path,
  *        Unused yet. Submit 0.
  * @return
  *        ISO_SUCCESS or error (which is < 0)
- * 
+ *
  * @since 1.4.0
- */ 
+ */
 int iso_interval_reader_destroy(struct iso_interval_reader **ivr, int flag);
 
 /**
@@ -2644,7 +2649,7 @@ int iso_write_opts_set_prep_img(IsoWriteOpts *opts, char *image_path,
  *
  * @since 1.2.4
  */
-int iso_write_opts_set_efi_bootp(IsoWriteOpts *opts, char *image_path, 
+int iso_write_opts_set_efi_bootp(IsoWriteOpts *opts, char *image_path,
                                  int flag);
 
 /**
@@ -2659,7 +2664,7 @@ int iso_write_opts_set_efi_bootp(IsoWriteOpts *opts, char *image_path,
  * @param guid
  *        16 bytes of user supplied GUID. Readily byte-swapped from the text
  *        form as prescribed by UEFI specs:
- *          4 byte, 2 byte, 2 byte as little-endian. 
+ *          4 byte, 2 byte, 2 byte as little-endian.
  *          2 byte, 6 byte as big-endian.
  *        The upper 4 bit of guid[7] should bear the value 4 to express the
  *        RFC 4122 version 4. Bit 7 of byte[8] should  be set to 1 and bit 6
@@ -2713,7 +2718,7 @@ void iso_generate_gpt_guid(uint8_t guid[16]);
  *                        unclaimable space before partition 1.
  *        Range with SUN Disk Label: 2 to 8.
  * @param partition_type
- *        The MBR partition type. E.g. FAT12 = 0x01 , FAT16 = 0x06, 
+ *        The MBR partition type. E.g. FAT12 = 0x01 , FAT16 = 0x06,
  *        Linux Native Partition = 0x83. See fdisk command L.
  *        This parameter is ignored with SUN Disk Label.
  * @param image_path
@@ -2737,7 +2742,7 @@ int iso_write_opts_set_partition_img(IsoWriteOpts *opts, int partition_number,
 /**
  * Control whether partitions created by iso_write_opts_set_partition_img()
  * are to be represented in MBR or as GPT partitions.
- * 
+ *
  * @param opts
  *        The option set to be manipulated.
  * @param gpt
@@ -2782,7 +2787,7 @@ int iso_write_opts_set_part_type_guid(IsoWriteOpts *opts, int partition_number,
 /**
  * Control whether partitions created by iso_write_opts_set_partition_img()
  * are to be represented in Apple Partition Map.
- * 
+ *
  * @param opts
  *        The option set to be manipulated.
  * @param apm
@@ -2818,7 +2823,7 @@ int iso_write_opts_set_appended_as_apm(IsoWriteOpts *opts, int apm);
  *           Do not mention appended partitions in APM unless
  *           iso_write_opts_set_appended_as_apm() is enabled.
  *        1= Apply the described behavior even without ISOLINUX isohybrid.
- *        
+ *
  * @return
  *        ISO_SUCCESS or error
  *
@@ -3044,7 +3049,7 @@ int iso_read_opts_set_no_md5(IsoReadOpts *opts, int no_md5);
 /**
  * Control discarding of eventual inode numbers from existing images.
  * Such numbers may come from RRIP 1.12 entries PX. If not discarded they
- * get written unchanged when the file object gets written into an ISO image. 
+ * get written unchanged when the file object gets written into an ISO image.
  * If this inode number is missing with a file in the imported image,
  * or if it has been discarded during image reading, then a unique inode number
  * will be generated at some time before the file gets written into an ISO
@@ -3365,17 +3370,17 @@ void *iso_image_get_attached_data(IsoImage *image);
  *   iso_image_tree_clone()                  iso_tree_clone()
  *   iso_image_dir_get_node()                iso_dir_get_node()
  *   iso_image_path_to_node()                iso_tree_path_to_node()
- * 
+ *
  * Beware of ambiguities if both, the full name and the truncated name,
  * exist in the same directory. Best is to only set truncation parameters
  * once with an ISO filesystem and to never change them later.
- * 
+ *
  * If writing of AAIP is enabled, then the mode and length are recorded in
  * xattr "isofs.nt" of the root node.
  * If reading of AAIP is enabled and "isofs.nt" is found, then it gets into
  * effect if both, the truncate mode value from "isofs.nt" and the current
  * truncate mode of the IsoImage are 1, and the length is between 64 and 255.
- * 
+ *
  * @param img
  *      The image which shall be manipulated.
  * @param mode
@@ -3415,7 +3420,7 @@ int iso_image_get_truncate_mode(IsoImage *img, int *mode, int *length);
 
 /**
  * Immediately apply the given truncate mode and length to the given string.
- * 
+ *
  * @param mode
  *      See iso_image_set_truncate_mode()
  * @param length
@@ -3613,7 +3618,7 @@ void iso_image_set_app_use(IsoImage *image, const char *app_use_data,
  * The returned char array of 512 bytes is owned by the image and must not
  * be freed or changed.
  *
- * @param image 
+ * @param image
  *      The image to inquire
  * @since 1.3.2
  */
@@ -3625,7 +3630,7 @@ const char *iso_image_get_app_use(IsoImage *image);
  * of 16 digits of the form YYYYMMDDhhmmsscc, plus a signed byte in the range
  * of -48 to +52, which gives the timezone offset in steps of 15 minutes.
  * None of the returned string pointers shall be used for altering or freeing
- * data. They are just for reading. 
+ * data. They are just for reading.
  *
  * @param image
  *        The image to be inquired.
@@ -3772,7 +3777,7 @@ int iso_image_get_boot_image(IsoImage *image, ElToritoBootImage **boot,
 /**
  * Get detailed information about the boot catalog that was loaded from
  * an ISO image.
- * The boot catalog links the El Torito boot record at LBA 17 with the 
+ * The boot catalog links the El Torito boot record at LBA 17 with the
  * boot images which are IsoFile objects in the image. The boot catalog
  * itself is not a regular file and thus will not deliver an IsoStream.
  * Its content is usually quite short and can be obtained by this call.
@@ -3802,7 +3807,7 @@ int iso_image_get_bootcat(IsoImage *image, IsoBoot **catnode, uint32_t *lba,
  * Get all El-Torito boot images of an ISO image.
  *
  * The first of these boot images is the same as returned by
- * iso_image_get_boot_image(). The others are alternative boot images. 
+ * iso_image_get_boot_image(). The others are alternative boot images.
  *
  * @param image
  *      The image from which to get the boot images.
@@ -3844,7 +3849,7 @@ void iso_image_remove_boot_image(IsoImage *image);
 
 /**
  * Sets the sort weight of the boot catalog that is attached to an IsoImage.
- * 
+ *
  * For the meaning of sort weights see iso_node_set_sort_weight().
  * That function cannot be applied to the emerging boot catalog because
  * it is not represented by an IsoFile.
@@ -3863,10 +3868,10 @@ int iso_image_set_boot_catalog_weight(IsoImage *image, int sort_weight);
 
 /**
  * Hides the boot catalog file from directory trees.
- * 
+ *
  * For the meaning of hiding files see iso_node_set_hidden().
  *
- * 
+ *
  * @param image
  *      The image to manipulate.
  * @param hide_attrs
@@ -3893,12 +3898,12 @@ int iso_image_set_boot_catalog_hidden(IsoImage *image, int hide_attrs);
  *
  * @since 0.6.32
  */
-int el_torito_get_boot_media_type(ElToritoBootImage *bootimg, 
+int el_torito_get_boot_media_type(ElToritoBootImage *bootimg,
                                   enum eltorito_boot_media_type *media_type);
 
 /**
  * Sets the platform ID of the boot image.
- * 
+ *
  * The Platform ID gets written into the boot catalog at byte 1 of the
  * Validation Entry, or at byte 1 of a Section Header Entry.
  * If Platform ID and ID String of two consecutive bootimages are the same
@@ -3922,7 +3927,7 @@ int el_torito_set_boot_platform_id(ElToritoBootImage *bootimg, uint8_t id);
  * @param bootimg
  *      The image to inquire
  * @return
- *      0 - 255 : The platform ID 
+ *      0 - 255 : The platform ID
  *      < 0     : error
  *
  * @since 0.6.32
@@ -3951,7 +3956,7 @@ void el_torito_set_load_seg(ElToritoBootImage *bootimg, short segment);
  * @param bootimg
  *      The image to inquire
  * @return
- *      0 - 65535 : The load segment value 
+ *      0 - 65535 : The load segment value
  *      < 0       : error
  *
  * @since 0.6.32
@@ -4049,7 +4054,7 @@ int el_torito_get_bootable(ElToritoBootImage *bootimg);
  */
 int el_torito_set_id_string(ElToritoBootImage *bootimg, uint8_t id_string[28]);
 
-/** 
+/**
  * Get the id_string as of el_torito_set_id_string().
  *
  * @param bootimg
@@ -4084,7 +4089,7 @@ int el_torito_get_id_string(ElToritoBootImage *bootimg, uint8_t id_string[28]);
  */
 int el_torito_set_selection_crit(ElToritoBootImage *bootimg, uint8_t crit[20]);
 
-/** 
+/**
  * Get the Selection Criteria bytes as of el_torito_set_selection_crit().
  *
  * @param bootimg
@@ -4127,7 +4132,7 @@ int el_torito_seems_boot_info_table(ElToritoBootImage *bootimg, int flag);
  * if the type of boot image is known.
  *
  * @param bootimg
- *      The image to set options on 
+ *      The image to set options on
  * @param options
  *        bitmask style flag. The following values are defined:
  *
@@ -4135,7 +4140,7 @@ int el_torito_seems_boot_info_table(ElToritoBootImage *bootimg, int flag);
  *              This does the same as mkisofs option -boot-info-table.
  *              Needed for ISOLINUX or GRUB boot images with platform ID 0.
  *              The table is located at byte 8 of the boot image file.
- *              Its size is 56 bytes. 
+ *              Its size is 56 bytes.
  *              The original boot image file on disk will not be modified.
  *
  *              One may use el_torito_seems_boot_info_table() for a
@@ -4167,7 +4172,7 @@ int el_torito_seems_boot_info_table(ElToritoBootImage *bootimg, int flag);
  *                   This cannot be combined with HFS+ production by
  *                   iso_write_opts_set_hfsplus().
  *                   @since 1.2.4
- *                Primary GPT and backup GPT get written if at least one 
+ *                Primary GPT and backup GPT get written if at least one
  *                ElToritoBootImage shall be mentioned.
  *                The first three mentioned GPT partitions get mirrored in the
  *                the partition table of the isohybrid MBR. They get type 0xfe.
@@ -4195,7 +4200,7 @@ int el_torito_seems_boot_info_table(ElToritoBootImage *bootimg, int flag);
 int el_torito_set_isolinux_options(ElToritoBootImage *bootimg,
                                    int options, int flag);
 
-/** 
+/**
  * Get the options as of el_torito_set_isolinux_options().
  *
  * @param bootimg
@@ -4472,7 +4477,7 @@ int iso_image_get_system_area(IsoImage *img, char data[32768],
  * eventually loaded System Area.
  * The array will be NULL if no System Area was loaded. It will be non-NULL
  * with zero line count if the System Area was loaded and contains only
- * 0-bytes. 
+ * 0-bytes.
  * Else it will consist of lines as described in ISO_SYSAREA_REPORT_DOC above.
  *
  * File paths and other long texts are reported as "(too long to show here)"
@@ -4574,7 +4579,7 @@ int iso_image_report_system_area(IsoImage *image,
  *
  * The lines have the same length restrictions and whitespace rules as the ones
  * returned by iso_image_report_system_area().
- * 
+ *
  * @param image
  *        The image to be inquired.
  * @param reply
@@ -4623,7 +4628,7 @@ int iso_image_report_el_torito(IsoImage *image,
  * @param flag
  *        Bitfield for control purposes. Submit 0.
  * @return
- *        The CRC of data. 
+ *        The CRC of data.
  * @since 1.3.8
  */
 uint32_t iso_crc32_gpt(unsigned char *data, int count, int flag);
@@ -4632,7 +4637,7 @@ uint32_t iso_crc32_gpt(unsigned char *data, int count, int flag);
  * Add a MIPS boot file path to the image.
  * Up to 15 such files can be written into a MIPS Big Endian Volume Header
  * if this is enabled by value 1 in iso_write_opts_set_system_area() option
- * bits 2 to 7. 
+ * bits 2 to 7.
  * A single file can be written into a DEC Boot Block if this is enabled by
  * value 2 in iso_write_opts_set_system_area() option bits 2 to 7. So only
  * the first added file gets into effect with this system area type.
@@ -4685,7 +4690,7 @@ int iso_image_give_up_mips_boot(IsoImage *image, int flag);
  * 64-bit big-endian number to byte position 0x228. The size is written
  * as 32-bit big-endian to 0x230.
  * This setting has an effect only if system area type is set to 3
- * with iso_write_opts_set_system_area(). 
+ * with iso_write_opts_set_system_area().
  *
  * @param img
  *        The image to be manipulated.
@@ -4896,7 +4901,7 @@ int iso_node_remove_xinfo(IsoNode *node, iso_node_xinfo_func proc);
  *      Bitfield for control purposes, unused yet, submit 0
  * @return
  *      1 on success, < 0 on error
- *      
+ *
  * @since 1.0.2
  */
 int iso_node_remove_all_xinfo(IsoNode *node, int flag);
@@ -4925,7 +4930,7 @@ int iso_node_get_xinfo(IsoNode *node, iso_node_xinfo_func proc, void **data);
  * Get the next pair of function pointer and data of an iteration of the
  * list of extended information. Like:
  *     iso_node_xinfo_func proc;
- *     void *handle = NULL, *data; 
+ *     void *handle = NULL, *data;
  *     while (iso_node_get_next_xinfo(node, &handle, &proc, &data) == 1) {
  *         ... make use of proc and data ...
  *     }
@@ -4972,7 +4977,7 @@ int iso_node_get_next_xinfo(IsoNode *node, void **handle,
  *     > 0 number of allocated bytes
  *       0 no size info is available
  *     < 0 error
- * 
+ *
  * @since 1.0.2
  */
 typedef int (*iso_node_xinfo_cloner)(void *old_data, void **new_data,int flag);
@@ -4990,7 +4995,7 @@ typedef int (*iso_node_xinfo_cloner)(void *old_data, void **new_data,int flag);
  *     Unused yet, submit 0
  * @return
  *     1 success, < 0 error
- * 
+ *
  * @since 1.0.2
  */
 int iso_node_xinfo_make_clonable(iso_node_xinfo_func proc,
@@ -5009,7 +5014,7 @@ int iso_node_xinfo_make_clonable(iso_node_xinfo_func proc,
  *     Unused yet, submit 0
  * @return
  *     1 success, 0 no cloner registered for proc, < 0 error
- * 
+ *
  * @since 1.0.2
  */
 int iso_node_xinfo_get_cloner(iso_node_xinfo_func proc,
@@ -5288,7 +5293,7 @@ int iso_dir_add_node(IsoDir *dir, IsoNode *child,
  *
  * @since 1.4.2
  */
-int iso_image_dir_get_node(IsoImage *image, IsoDir *dir, 
+int iso_image_dir_get_node(IsoImage *image, IsoDir *dir,
                            const char *name, IsoNode **node, int flag);
 
 /**
@@ -5689,7 +5694,7 @@ int iso_dir_find_children(IsoDir* dir, IsoFindCondition *cond,
 const char *iso_symlink_get_dest(const IsoSymlink *link);
 
 /**
- * Set the destination of a symbolic 
+ * Set the destination of a symbolic
  *
  * @param link
  *     The link node to be manipulated
@@ -5989,8 +5994,8 @@ int iso_memory_stream_new(unsigned char *buf, size_t size, IsoStream **stream);
  *
  * @since 1.4.2
  */
-int iso_image_add_new_symlink(IsoImage *image, IsoDir *parent, 
-                              const char *name, const char *dest, 
+int iso_image_add_new_symlink(IsoImage *image, IsoDir *parent,
+                              const char *name, const char *dest,
                               IsoSymlink **link);
 
 /**
@@ -6302,7 +6307,7 @@ int iso_tree_add_node(IsoImage *image, IsoDir *parent, const char *path,
 
 /**
  * This is a more versatile form of iso_tree_add_node which allows to set
- * the node name in ISO image already when it gets added. 
+ * the node name in ISO image already when it gets added.
  *
  * Add a new node to the image tree, from an existing file, and with the
  * given name, that must not exist on dir.
@@ -6442,7 +6447,7 @@ int iso_image_tree_clone(IsoImage *image, IsoNode *node, IsoDir *new_parent,
  *
  * Create a copy of the given node under a different path without taking
  * into respect name truncation mode of an IsoImage.
- * 
+ *
  * @param node
  *      The node to be cloned.
  * @param new_parent
@@ -7078,7 +7083,7 @@ int iso_file_source_readlink(IsoFileSource *src, char *buf, size_t bufsiz);
  * @param src        The file source object to be inquired.
  * @param aa_string  Returns a pointer to the AAIP string data. If no AAIP
  *                   string is available, *aa_string becomes NULL.
- *                   (See doc/susp_aaip_2_0.txt for the meaning of AAIP.) 
+ *                   (See doc/susp_aaip_2_0.txt for the meaning of AAIP.)
  *                   The caller is responsible for finally calling free()
  *                   on non-NULL results.
  * @param flag       Bitfield for control purposes
@@ -7322,7 +7327,7 @@ void iso_stream_get_id(IsoStream *stream, unsigned int *fs_id, dev_t *dev_id,
  * of this string depends on the stream.class . Expect valid results with
  * types "fsrc" and "cout". Result formats are
  * fsrc: result of file_source_get_path()
- * cout: result of file_source_get_path() " " offset " " size 
+ * cout: result of file_source_get_path() " " offset " " size
  * @param stream
  *     The stream to be inquired.
  * @param flag
@@ -7358,9 +7363,9 @@ int iso_stream_cmp_ino(IsoStream *s1, IsoStream *s2, int flag);
  * Produce a copy of a stream. It must be possible to operate both stream
  * objects concurrently. The success of this function depends on the
  * existence of a IsoStream_Iface.clone_stream() method with the stream
- * and with its eventual subordinate streams. 
+ * and with its eventual subordinate streams.
  * See iso_tree_clone() for a list of surely clonable built-in streams.
- * 
+ *
  * @param old_stream
  *     The existing stream object to be copied
  * @param new_stream
@@ -7452,7 +7457,7 @@ int iso_node_get_acl_text(IsoNode *node,
  * Note that S_IRWXG permission bits correspond to ACL mask permissions
  * if a "mask::" entry exists in the ACL. Only if there is no "mask::" then
  * the "group::" entry corresponds to to S_IRWXG.
- * 
+ *
  * @param node
  *      The node that is to be manipulated.
  * @param access_text
@@ -7502,7 +7507,7 @@ mode_t iso_node_get_perms_wo_acl(const IsoNode *node);
  * The resulting data may finally be disposed by a call to this function
  * with flag bit15 set, or its components may be freed one-by-one.
  * The following values are either NULL or malloc() memory:
- *   *names, *value_lengths, *values, (*names)[i], (*values)[i] 
+ *   *names, *value_lengths, *values, (*names)[i], (*values)[i]
  * with 0 <= i < *num_attrs.
  * It is allowed to replace or reallocate those memory items in order to
  * to manipulate the attribute list before submitting it to other calls.
@@ -7621,7 +7626,7 @@ int iso_node_set_attrs(IsoNode *node, size_t num_attrs, char **names,
  * inside libisofs. They may be disabled because of compile time decisions.
  * E.g. because the operating system does not support these features or
  * because libisofs has not yet an adapter to use them.
- * 
+ *
  * @param flag
  *      Bitfield for control purposes
  *           bit0= inquire availability of ACL
@@ -7657,8 +7662,8 @@ int iso_local_attr_support(int flag);
  *           bit5=  in case of symbolic link: inquire link target
  *           bit15= free text and return 1
  * @return
- *        1 ok 
- *        2 ok, trivial ACL found while bit4 is set, *text is NULL 
+ *        1 ok
+ *        2 ok, trivial ACL found while bit4 is set, *text is NULL
  *        0 no ACL manipulation adapter available / ACL not supported on fs
  *       -1 failure of system ACL service (see errno)
  *       -2 attempt to inquire ACL of a symbolic link without bit4 or bit5
@@ -7787,7 +7792,7 @@ int iso_local_get_attrs(char *disk_path, size_t *num_attrs, char ***names,
  *             avoid setting a name value pair if it already exists and
  *             has the desired value.
  * @return
- *      1 = ok 
+ *      1 = ok
  *    < 0 = error
  *
  * @since 1.5.0
@@ -7865,14 +7870,14 @@ int iso_file_remove_filter(IsoFile *file, int flag);
  * @param flag
  *      Bitfield for control purposes.
  *      bit0= Follow the chain of input streams and return the one at the
- *            end of the chain. 
+ *            end of the chain.
  *            @since 1.3.2
  * @return
  *      The input stream, if one exists. Elsewise NULL.
  *      No extra reference to the stream is taken by this call.
- * 
+ *
  * @since 0.6.18
- */    
+ */
 IsoStream *iso_stream_get_input_stream(IsoStream *stream, int flag);
 
 
@@ -7884,7 +7889,7 @@ IsoStream *iso_stream_get_input_stream(IsoStream *stream, int flag);
  * It is to be created and disposed by the application.
  *
  * The filter will act as proxy between the original IsoStream of an IsoFile.
- * Up to completed image generation it will be run at least twice: 
+ * Up to completed image generation it will be run at least twice:
  * for IsoStream.class.get_size() and for .open() with subsequent .read().
  * So the original IsoStream has to return 1 by its .class.is_repeatable().
  * The filter program has to be repeateable too. I.e. it must produce the same
@@ -8118,7 +8123,7 @@ struct iso_zisofs_ctrl {
 
     /* ------------------- Only valid with .version >= 1 ------------------- */
 
-    /* 
+    /*
      * Whether to produce zisofs2 (zisofs version 2) file headers and ZF
      * entries for files which get compressed:
      *  0 = do not produce zisofs2,
@@ -8343,7 +8348,7 @@ int iso_gzip_get_refcounts(off_t *gzip_count, off_t *gunzip_count, int flag);
  * @param end_lba
  *      Returns the first block address not covered by md5 any more
  * @param md5
- *      Returns 16 byte of MD5 checksum 
+ *      Returns 16 byte of MD5 checksum
  * @param flag
  *      Bitfield for control purposes, unused yet, submit 0
  * @return
@@ -8366,7 +8371,7 @@ int iso_image_get_session_md5(IsoImage *image, uint32_t *start_lba,
  * @param file
  *      The file object to inquire
  * @param md5
- *      Eventually returns 16 byte of MD5 checksum 
+ *      Eventually returns 16 byte of MD5 checksum
  * @param flag
  *      Bitfield for control purposes
  *      bit0= only determine return value, do not touch parameter md5
@@ -8448,7 +8453,7 @@ int iso_file_make_md5(IsoFile *file, int flag);
  * @return
  *      0= not a checksum tag, return parameters are invalid
  *      1= checksum tag found, return parameters are valid
- *     <0= error 
+ *     <0= error
  *         (return parameters are valid with error ISO_MD5_AREA_CORRUPTED
  *          but not trustworthy because the tag seems corrupted)
  *
@@ -8491,11 +8496,11 @@ int iso_md5_start(void **md5_context);
  */
 int iso_md5_compute(void *md5_context, char *data, int datalen);
 
-/**     
+/**
  * Create a MD5 computation context as clone of an existing one. One may call
  * iso_md5_clone(old, &new, 0) and then iso_md5_end(&new, result, 0) in order
  * to obtain an intermediate MD5 sum before the computation goes on.
- * 
+ *
  * @param old_md5_context
  *      An opaque handle once returned by iso_md5_start() or iso_md5_clone().
  * @param new_md5_context
@@ -8543,7 +8548,7 @@ int iso_md5_match(char first_md5[16], char second_md5[16]);
 /* -------------------------------- For HFS+ ------------------------------- */
 
 
-/** 
+/**
  * HFS+ attributes which may be attached to IsoNode objects as data parameter
  * of iso_node_add_xinfo(). As parameter proc use iso_hfsplus_xinfo_func().
  * Create instances of this struct by iso_hfsplus_xinfo_new().
@@ -8563,7 +8568,7 @@ struct iso_hfsplus_xinfo_data {
   uint8_t type_code[4];
 };
 
-/** 
+/**
  * The function that is used to mark struct iso_hfsplus_xinfo_data at IsoNodes
  * and finally disposes such structs when their IsoNodes get disposed.
  * Usually an application does not call this function, but only uses it as
@@ -8573,7 +8578,7 @@ struct iso_hfsplus_xinfo_data {
  */
 int iso_hfsplus_xinfo_func(void *data, int flag);
 
-/** 
+/**
  * Create an instance of struct iso_hfsplus_xinfo_new().
  *
  * @param flag
@@ -8615,7 +8620,7 @@ enum IsoHfsplusBlessings {
 /**
  * Issue a blessing to a particular IsoNode. If the blessing is already issued
  * to some file, then it gets revoked from that one.
- * 
+ *
  * @param img
  *     The image to manipulate.
  * @param blessing
@@ -9269,8 +9274,8 @@ int iso_conv_name_chars(IsoWriteOpts *opts, char *name, size_t name_len,
 #define ISO_ZISOFS_UNKNOWN_SIZE     0xE830FE57
 
 
-/* Internal developer note: 
-   Place new error codes directly above this comment. 
+/* Internal developer note:
+   Place new error codes directly above this comment.
    Newly introduced errors must get a message entry in
    libisofs/messages.c, function iso_error_to_msg()
 */
@@ -9310,7 +9315,7 @@ int iso_conv_name_chars(IsoWriteOpts *opts, char *name, size_t name_len,
     An application that provides own struct burn_source objects and does not
     include libburn/libburn.h has to define LIBISOFS_WITHOUT_LIBBURN before
     including libisofs/libisofs.h in order to make this copy available.
-*/ 
+*/
 
 
 /** Data source interface for tracks.
@@ -9357,7 +9362,7 @@ struct burn_source {
 	int (*read)(struct burn_source *, unsigned char *buffer, int size);
 
 
-	/** Read subchannel data from the source (NULL if lib generated) 
+	/** Read subchannel data from the source (NULL if lib generated)
 	    WARNING: This is an obscure feature with CD raw write modes.
 	    Unless you checked the libburn code for correctness in that aspect
 	    you should not rely on raw writing with own subchannels.
@@ -9370,7 +9375,7 @@ struct burn_source {
 	    size. If application provided (*get_size) allows return 0, then
 	    the application MUST provide a fully functional (*set_size).
 	*/
-	off_t (*get_size)(struct burn_source *); 
+	off_t (*get_size)(struct burn_source *);
 
 
         /* @since 0.3.2 */
