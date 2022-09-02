@@ -1,10 +1,10 @@
 
 /*
  * Copyright (c) 2007 - 2016 Vreixo Formoso, Thomas Schmitt
- * 
- * This file is part of the libisofs project; you can redistribute it and/or 
- * modify it under the terms of the GNU General Public License version 2 
- * or later as published by the Free Software Foundation. 
+ *
+ * This file is part of the libisofs project; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * or later as published by the Free Software Foundation.
  * See COPYING file for details.
  */
 
@@ -14,7 +14,7 @@ static char helptext[][80] = {
 "programs. The first argument chooses the gesture:",
 "  -tree  absolute_directory_path",
 "               Import a directory and print the resulting iso tree.",
-"  -find  absolute_directory_path",      
+"  -find  absolute_directory_path",
 "               Import a directory, find matching nodes and print the",
 "               resulting iso tree.",
 "  -iso  [options] directory output_file",
@@ -50,7 +50,11 @@ static char helptext[][80] = {
 #include <unistd.h>
 #include <getopt.h>
 #include <fcntl.h>
-#include <err.h>
+
+#ifndef _WIN32
+    #include <err.h>
+#endif // _WIN32
+
 #include <limits.h>
 #include <errno.h>
 
@@ -82,9 +86,9 @@ static void
 print_permissions(mode_t mode)
 {
     char perm[10];
-    
+
     /* TODO suid, sticky... */
-    
+
     perm[9] = '\0';
     perm[8] = mode & S_IXOTH ? 'x' : '-';
     perm[7] = mode & S_IWOTH ? 'w' : '-';
@@ -98,8 +102,8 @@ print_permissions(mode_t mode)
     printf("[%s]",perm);
 }
 
-static void 
-tree_print_dir(IsoDir *dir, int level) 
+static void
+tree_print_dir(IsoDir *dir, int level)
 {
     int i;
     IsoDirIter *iter;
@@ -107,19 +111,19 @@ tree_print_dir(IsoDir *dir, int level)
     char *sp;
 
     sp = calloc(1, level * 2 + 1);
-    
+
     for (i = 0; i < level * 2; i += 2) {
         sp[i] = '|';
         sp[i+1] = ' ';
     }
-    
+
     if (level > 0)
         sp[level * 2 - 1] = '-';
     sp[level * 2] = '\0';
-    
+
     iso_dir_get_children(dir, &iter);
     while (iso_dir_iter_next(iter, &node) == 1) {
-        
+
         if (ISO_NODE_IS_DIR(node)) {
             printf("%s+[D] ", sp);
             print_permissions(iso_node_get_permissions(node));
@@ -138,7 +142,7 @@ tree_print_dir(IsoDir *dir, int level)
             printf("%s-[C] ", sp);
             print_permissions(iso_node_get_permissions(node));
             printf(" %s\n", iso_node_get_name(node) );
-        } 
+        }
     }
     iso_dir_iter_free(iter);
     free(sp);
@@ -148,7 +152,7 @@ int gesture_tree(int argc, char **argv)
 {
     int result;
     IsoImage *image;
-    
+
     if (argc != 2) {
 need_abs_path:;
         fprintf (stderr, "You need to specify a valid absolute path\n");
@@ -159,23 +163,23 @@ need_abs_path:;
 
     iso_init();
     iso_set_msgs_severities("NEVER", "ALL", "");
-    
+
     result = iso_image_new("volume_id", &image);
     if (result < 0) {
         printf ("Error creating image\n");
         return 1;
     }
-    
+
     result = iso_tree_add_dir_rec(image, iso_image_get_root(image), argv[1]);
     if (result < 0) {
         printf ("Error adding directory %d\n", result);
         return 1;
     }
-    
+
     printf("================= IMAGE =================\n");
     tree_print_dir(iso_image_get_root(image), 0);
     printf("\n\n");
-    
+
     iso_image_unref(image);
     iso_finish();
     return 0;
@@ -184,13 +188,13 @@ need_abs_path:;
 
 /* ------------------------- from demo/find.c ----------------------- */
 
-static void 
-find_print_dir(IsoDir *dir) 
+static void
+find_print_dir(IsoDir *dir)
 {
     IsoDirIter *iter;
     IsoNode *node;
     IsoFindCondition *cond, *c1, *c2;
-    
+
     c1 = iso_new_find_conditions_name("*a*");
     c2 = iso_new_find_conditions_mode(S_IFREG);
     cond = iso_new_find_conditions_and(c1, c2);
@@ -207,7 +211,7 @@ int gesture_find(int argc, char **argv)
 {
     int result;
     IsoImage *image;
-    
+
     if (argc != 2) {
 need_abs_path:;
         fprintf (stderr, "You need to specify a valid absolute path\n");
@@ -218,21 +222,21 @@ need_abs_path:;
 
     iso_init();
     iso_set_msgs_severities("NEVER", "ALL", "");
-    
+
     result = iso_image_new("volume_id", &image);
     if (result < 0) {
         printf ("Error creating image\n");
         return 1;
     }
-    
+
     result = iso_tree_add_dir_rec(image, iso_image_get_root(image), argv[1]);
     if (result < 0) {
         printf ("Error adding directory %d\n", result);
         return 1;
     }
-    
+
     find_print_dir(iso_image_get_root(image));
-    
+
     iso_image_unref(image);
     iso_finish();
     return 0;
@@ -331,7 +335,11 @@ int gesture_iso(int argc, char **argv)
 
     fp = fopen(argv[optind+1], "w");
     if (fp == NULL) {
+#ifdef _WIN32
+        printf("error opening output file: %s",strerror(errno));
+#else
         err(1, "error opening output file");
+#endif // _WIN32
         goto ex;
     }
 
@@ -419,8 +427,12 @@ static void
 iso_read_print_type(mode_t mode)
 {
     switch(mode & S_IFMT) {
+#ifdef S_IFSOCK
     case S_IFSOCK: printf("[S] "); break;
+#endif // S_IFSOCK
+#ifdef S_IFLNK
     case S_IFLNK: printf("[L] "); break;
+#endif // S_IFLNK
     case S_IFREG: printf("[R] "); break;
     case S_IFBLK: printf("[B] "); break;
     case S_IFDIR: printf("[D] "); break;
@@ -441,11 +453,13 @@ iso_read_print_file_src(IsoFileSource *file)
     name = iso_file_source_get_name(file);
     printf(" %s", name);
     free(name);
+#ifdef S_ISLNK
     if (S_ISLNK(info.st_mode)) {
         char buf[PATH_MAX];
         iso_file_source_readlink(file, buf, PATH_MAX);
         printf(" -> %s\n", buf);
     }
+#endif // S_ISLNK
     printf("\n");
 }
 
@@ -693,15 +707,19 @@ int gesture_iso_modify(int argc, char **argv)
     FILE *fp = NULL;
     IsoWriteOpts *opts = NULL;
     IsoReadOpts *ropts = NULL;
-	
+
     if (argc < 4) {
         iso_modify_usage(argv);
         goto ex;
     }
-    
+
     fp = fopen(argv[3], "w");
     if (fp == NULL) {
+#ifdef _WIN32
+        printf("error opening output file: %s",strerror(errno));
+#else
         err(1, "error opening output file");
+#endif // _WIN32
         goto ex;
     }
 
@@ -712,14 +730,14 @@ int gesture_iso_modify(int argc, char **argv)
     }
     initialized = 1;
     iso_set_msgs_severities("NEVER", "ALL", "");
-    
+
     /* create the data source to accesss previous image */
     result = iso_data_source_new_from_file(argv[1], &src);
     if (result < 0) {
         demo_report_iso_err(result, "Error creating data source");
         goto ex;
     }
-    
+
     /* create the image context */
     result = iso_image_new("volume_id", &image);
     if (result < 0) {
@@ -728,7 +746,7 @@ int gesture_iso_modify(int argc, char **argv)
     }
     iso_tree_set_follow_symlinks(image, 0);
     iso_tree_set_ignore_hidden(image, 0);
-    
+
     /* import previous image */
     result = iso_read_opts_new(&ropts, 0);
     if (result < 0) {
@@ -745,14 +763,14 @@ int gesture_iso_modify(int argc, char **argv)
     ropts = NULL;
     iso_data_source_unref(src);
     src = NULL;
-    
+
     /* add new dir */
     result = iso_tree_add_dir_rec(image, iso_image_get_root(image), argv[2]);
     if (result < 0) {
         demo_report_iso_err(result, "Error adding directory");
         goto ex;
     }
-    
+
     /* Generate a new image with both previous and added contents.
        Profile 1 means Rock Ridge and ISO level 3.
     */
@@ -765,7 +783,7 @@ int gesture_iso_modify(int argc, char **argv)
     iso_write_opts_set_allow_deep_paths(opts, 1);
 
     /* For MS-Windows readers : iso_write_opts_set_joliet(opts, 1); */
- 
+
     result = iso_image_create_burn_source(image, opts, &burn_src);
     if (result < 0) {
         demo_report_iso_err(result, "Cannot create image object");
@@ -773,7 +791,7 @@ int gesture_iso_modify(int argc, char **argv)
     }
     iso_write_opts_free(opts);
     opts = NULL;
-    
+
     while (burn_src->read_xt(burn_src, buf, 2048) == 2048) {
         result = fwrite(buf, 1, 2048, fp);
         if (result < 2048) {
@@ -823,7 +841,7 @@ int gesture_iso_ms(int argc, char **argv)
     IsoWriteOpts *opts = NULL;
     IsoReadOpts *ropts = NULL;
     uint32_t ms_block;
-	
+
     if (argc < 6) {
         iso_ms_usage(argv);
         goto ex;
@@ -837,7 +855,11 @@ int gesture_iso_ms(int argc, char **argv)
 
     fp = fopen(argv[5], "w");
     if (!fp) {
+#ifdef _WIN32
+        printf("error opening output file: %s",strerror(errno));
+#else
         err(1, "error opening output file");
+#endif // _WIN32
         goto ex;
     }
 
@@ -849,14 +871,14 @@ int gesture_iso_ms(int argc, char **argv)
     initialized = 1;
 
     iso_set_msgs_severities("NEVER", "ALL", "");
-    
+
     /* create the data source to accesss previous image */
     result = iso_data_source_new_from_file(argv[3], &src);
     if (result < 0) {
         demo_report_iso_err(result, "Error creating data source");
         goto ex;
     }
-    
+
     /* create the image context */
     result = iso_image_new("volume_id", &image);
     if (result < 0) {
@@ -865,7 +887,7 @@ int gesture_iso_ms(int argc, char **argv)
     }
     iso_tree_set_follow_symlinks(image, 0);
     iso_tree_set_ignore_hidden(image, 0);
-    
+
     /* import previous image */
     result = iso_read_opts_new(&ropts, 0);
     if (result < 0) {
@@ -882,21 +904,21 @@ int gesture_iso_ms(int argc, char **argv)
         demo_report_iso_err(result, "Error importing previous session");
         goto ex;
     }
-    
+
     /* add new dir */
     result = iso_tree_add_dir_rec(image, iso_image_get_root(image), argv[4]);
     if (result < 0) {
         demo_report_iso_err(result, "Error adding directory");
         goto ex;
     }
-    
+
     /* generate a multisession image with new contents */
     result = iso_write_opts_new(&opts, 1);
     if (result < 0) {
         demo_report_iso_err(result, "Cannot create write opts");
         goto ex;
     }
-    
+
     /* round up to 32kb aligment = 16 block */
     ms_block =  atoi(argv[2]);
     iso_write_opts_set_ms_block(opts, ms_block);
@@ -909,7 +931,7 @@ int gesture_iso_ms(int argc, char **argv)
     }
     iso_write_opts_free(opts);
     opts = NULL;
-    
+
     while (burn_src->read_xt(burn_src, buf, 2048) == 2048) {
         result = fwrite(buf, 1, 2048, fp);
         if (result < 2048) {

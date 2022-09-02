@@ -1581,9 +1581,16 @@ int iso_node_new_special(char *name, mode_t mode, dev_t dev,
     if (special == NULL || name == NULL) {
         return ISO_NULL_POINTER;
     }
+
+#ifdef S_ISLNK
     if (S_ISLNK(mode) || S_ISREG(mode) || S_ISDIR(mode)) {
         return ISO_WRONG_ARG_VALUE;
     }
+#else
+    if (S_ISREG(mode) || S_ISDIR(mode)) {
+        return ISO_WRONG_ARG_VALUE;
+    }
+#endif // S_ISLNK
 
     /* check if the name is valid */
     ret = iso_node_is_valid_name(name);

@@ -26,8 +26,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include <pwd.h>
-#include <grp.h>
+
+#ifndef _WIN32
+	#include <pwd.h>
+	#include <grp.h>
+#endif // _WIN32
+
 #include <sys/stat.h>
 
 #include "libisofs.h"
@@ -46,7 +50,7 @@
 
 #define Aaip_TRANSLATE       0
 #define Aaip_ACL_USER_OBJ    1
-#define Aaip_ACL_USER        2 
+#define Aaip_ACL_USER        2
 #define Aaip_ACL_GROUP_OBJ   3
 #define Aaip_ACL_GROUP       4
 #define Aaip_ACL_MASK        5
@@ -91,14 +95,14 @@ static int aaip_encode_pair(char *name, size_t attr_length, char *attr,
    @param result_len    Number of bytes in the resulting SUSP field string
    @param result        *result will point to the start of the result string.
                         This is malloc() memory which needs to be freed when
-                        no longer needed 
+                        no longer needed
    @param flag          Bitfield for control purposes
                         bit0= set CONTINUE bit of last AAIP field to 1
    @return              >= 0 is the number of SUSP fields generated,
-                        < 0 means error 
+                        < 0 means error
 */
 ssize_t aaip_encode(size_t num_attrs, char **names,
-                    size_t *value_lengths, char **values, 
+                    size_t *value_lengths, char **values,
                     size_t *result_len, unsigned char **result, int flag)
 {
  size_t mem_size= 0, comp_size;
@@ -149,7 +153,7 @@ ssize_t aaip_encode(size_t num_attrs, char **names,
    (*result)[i * 255 + 1]= 'L';
    if(i < number_of_fields - 1 || (mem_size % 255) == 0)
      (*result)[i * 255 + 2]= 255;
-   else 
+   else
      (*result)[i * 255 + 2]= mem_size % 255;
    (*result)[i * 255 + 3]= 1;
    (*result)[i * 255 + 4]= (flag & 1) || (i < number_of_fields - 1);
@@ -274,7 +278,7 @@ static ssize_t aaip_encode_acl_text(char *acl_text, mode_t st_mode,
    @param result_len    Number of bytes in the resulting value
    @param result        *result will point to the start of the result string.
                         This is malloc() memory which needs to be freed when
-                        no longer needed 
+                        no longer needed
    @param flag          Bitfield for control purposes
                         bit0= count only
                         bit1= use numeric qualifiers rather than names
@@ -283,10 +287,10 @@ static ssize_t aaip_encode_acl_text(char *acl_text, mode_t st_mode,
                               fill up with entries deduced from st_mode
                         bit4= be verbose about failure causes
    @return              >0 means ok
-                        <=0 means error 
+                        <=0 means error
                         -1= out of memory
                         -2= program error with prediction of result size
-                        -3= error with conversion of name to uid or gid 
+                        -3= error with conversion of name to uid or gid
      ISO_AAIP_ACL_MULT_OBJ= multiple entries of user::, group::, other::
 */
 int aaip_encode_acl(char *acl_text, mode_t st_mode,
@@ -366,7 +370,7 @@ static int aaip_make_aaip_perms(int r, int w, int x)
                               fill up with entries deduced from st_mode
                         bit4= be verbose about failure causes
    @return              >=0 number of bytes produced resp. counted
-                        <0 means error 
+                        <0 means error
                         -1: result size overflow
                         -2: conversion error with user name or group name
      ISO_AAIP_ACL_MULT_OBJ: multiple entries of user::, group::, other::
@@ -412,6 +416,7 @@ static ssize_t aaip_encode_acl_text(char *acl_text, mode_t st_mode,
    if(cpt == NULL)
  continue;
    qualifier= 0;
+#ifndef _WIN32
    if(strncmp(rpt, "user:", 5) == 0) {
      if(cpt - rpt == 5) {
        type= Aaip_ACL_USER_OBJ;
@@ -431,7 +436,7 @@ static ssize_t aaip_encode_acl_text(char *acl_text, mode_t st_mode,
        if(cpt - (rpt + 5) >= name_size)
  continue;
        is_trivial= 0;
-       strncpy(name, rpt + 5, cpt - (rpt + 5)); 
+       strncpy(name, rpt + 5, cpt - (rpt + 5));
        name[cpt - (rpt + 5)]= 0;
        if(flag & 2) {
          type= Aaip_ACL_USER_N;
@@ -483,7 +488,7 @@ static ssize_t aaip_encode_acl_text(char *acl_text, mode_t st_mode,
        if(cpt - (rpt + 6) >= name_size)
  continue;
        is_trivial= 0;
-       strncpy(name, rpt + 6, cpt - (rpt + 6)); 
+       strncpy(name, rpt + 6, cpt - (rpt + 6));
        name[cpt - (rpt + 6)]= 0;
        if(flag & 2) {
          type= Aaip_ACL_GROUP_N;
@@ -517,6 +522,9 @@ static ssize_t aaip_encode_acl_text(char *acl_text, mode_t st_mode,
        qualifier= 1;
      }
    } else if(strncmp(rpt, "other:", 6) == 0) {
+#else
+  if(strncmp(rpt, "other:", 6) == 0) {
+#endif // !_WIN_32
      type= Aaip_ACL_OTHER;
      if (has_o) {
 
@@ -639,7 +647,7 @@ int aaip_encode_both_acl(char *a_acl_text, char *d_acl_text, mode_t st_mode,
    d_acl= NULL;
    acl_len= d_acl_len;
  } else if (d_acl == NULL || d_acl_len == 0) {
-   acl= a_acl; 
+   acl= a_acl;
    a_acl= NULL;
    acl_len= a_acl_len;
  } else {
@@ -896,7 +904,7 @@ int aaip_add_acl_st_mode(char *acl_text, mode_t st_mode, int flag)
          st_mode & S_IWGRP ? 'w' : '-',
          st_mode & S_IXGRP ? 'x' : '-');
  }
- return(1); 
+ return(1);
 }
 
 
@@ -1061,7 +1069,7 @@ static int aaip_ring_adr(struct aaip_state *aaip, size_t idx, size_t todo,
 }
 
 
-/* 
+/*
    @param flag          Bitfield for control purposes
                         bit0= count as ready_bytes
 */
@@ -1151,7 +1159,7 @@ static int aaip_shift_recs(struct aaip_state *aaip, size_t todo, int flag)
 #else /* Aaip_with_ring_buffeR */
 
 
-/* 
+/*
    @param flag          Bitfield for control purposes
                         bit0= count as ready_bytes
 */
@@ -1203,7 +1211,7 @@ static int aaip_shift_recs(struct aaip_state *aaip, size_t todo, int flag)
 
 
 #endif /* ! Aaip_with_ring_buffeR */
- 
+
 
 static int aaip_consume_rec_head(struct aaip_state *aaip,
                               unsigned char **data, size_t *num_data, int flag)
@@ -1219,7 +1227,7 @@ static int aaip_consume_rec_head(struct aaip_state *aaip,
    aaip_push_to_recs(aaip, *data, todo, 0);
  aaip->rec_head_missing-= todo;
  if(aaip->rec_head_missing == 0) {
-   aaip->rec_missing= aaip_get_buffer_byte(aaip, aaip->recs_fill - 1, 0); 
+   aaip->rec_missing= aaip_get_buffer_byte(aaip, aaip->recs_fill - 1, 0);
    aaip->rec_ends= !(aaip_get_buffer_byte(aaip, aaip->recs_fill - 2, 0) & 1);
  }
  aaip->aa_missing-= todo;
@@ -1233,7 +1241,7 @@ static int aaip_consume_rec_data(struct aaip_state *aaip,
                               unsigned char **data, size_t *num_data, int flag)
 {
  size_t todo;
- 
+
  todo= *num_data;
  if(todo > (size_t) aaip->aa_missing)
    todo= aaip->aa_missing;
@@ -1382,7 +1390,7 @@ int aaip_submit_data(struct aaip_state *aaip,
    goto ex;
  if(aaip->recs_fill + num_data > Aaip_buffer_sizE)
    return(0);
- 
+
  while(num_data > 0) {
    if(aaip->aa_head_missing > 0) {
      ret= aaip_consume_aa_head(aaip, &data, &num_data, 0);
@@ -1592,7 +1600,7 @@ retry:;
    @param aaip          The AAIP decoder context
    @param data          The raw data to decode
    @param num_data      Number of data bytes provided
-   @param consumed      Returns the number of consumed data bytes 
+   @param consumed      Returns the number of consumed data bytes
    @param name          Buffer to build the name string
    @param name_size     Maximum number of bytes in name
    @param name_fill     Holds the current buffer fill of name
@@ -1654,7 +1662,7 @@ int aaip_decode_pair(struct aaip_state *aaip,
    *consumed= ready_bytes;
    {ret= -1; goto ex;}
  } else if(ret == 0) { /* buffer overflow */;
-   /* should not happen with correct usage */ 
+   /* should not happen with correct usage */
    {ret= -3; goto ex;}
  } else if(ret == 1) { /* no component record complete */
    goto ex;
@@ -1664,7 +1672,7 @@ int aaip_decode_pair(struct aaip_state *aaip,
    ;
  } else if(ret == 4) { /* no component available, no more data expected */
    {ret= 5; goto ex;}
- } else 
+ } else
    {ret= -1; goto ex;} /* unknown reply from aaip_submit_data() */
 
  *consumed= num_data;
@@ -1689,7 +1697,7 @@ ex:;
        if(nl > 1) {
          /* Remove first character of name */
          memmove(name, name + 1, nl - 1);
-         (*name_fill)--; 
+         (*name_fill)--;
        }
      } else if(name[0] == Aaip_namespace_systeM ||
                name[0] == Aaip_namespace_useR ||
@@ -1784,7 +1792,7 @@ static int aaip_enlarge_buf(struct aaip_state *aaip, size_t memory_limit,
 */
 int aaip_decode_attrs(struct aaip_state **handle,
                       size_t memory_limit, size_t num_attr_limit,
-                      unsigned char *data, size_t num_data, size_t *consumed, 
+                      unsigned char *data, size_t num_data, size_t *consumed,
                       int flag)
 {
  int ret;
@@ -1936,9 +1944,9 @@ int aaip_decode_attrs(struct aaip_state **handle,
      ret= aaip->list_pending_pair;
      aaip->list_pending_pair= 0;
 
-     if(ret == 2) 
+     if(ret == 2)
         return(1);
-     if(ret == 4) 
+     if(ret == 4)
  break;
 
    } else if(ret == 5)
@@ -1965,7 +1973,7 @@ int aaip_decode_attrs(struct aaip_state **handle,
    @param flag          Bitfield for control purposes
                         bit15= free memory of names, value_lengths, values
    @return              <0 error
-                        0  no attribute list ready 
+                        0  no attribute list ready
                         1  ok
 */
 int aaip_get_decoded_attrs(struct aaip_state **handle, size_t *num_attrs,
@@ -2128,7 +2136,7 @@ int aaip_decode_acl(unsigned char *data, size_t num_data, size_t *consumed,
      perm_text[1]= 'w';
    if(perm & Aaip_EXEC)
      perm_text[2]= 'x';
-     
+
    type= (*rpt) >> 4;
    if(type == Aaip_FUTURE_VERSION) /* indicate to caller: version mismatch */
      {ret = -3; goto ex;}
@@ -2171,6 +2179,7 @@ int aaip_decode_acl(unsigned char *data, size_t num_data, size_t *consumed,
      /* Indicate to caller: end of desired ACL type access/default */
      if((perm & Aaip_EXEC) ^ (!!(flag & 2)))
        {ret= 2; goto ex;}
+#ifndef _WIN32
    } else if(type == Aaip_ACL_USER_N) {
      /* determine username from uid */
      uid= 0;
@@ -2199,7 +2208,8 @@ int aaip_decode_acl(unsigned char *data, size_t num_data, size_t *consumed,
        strcpy(name, grp->gr_name);
      /* user:<username>:rwx */;
      ret= aaip_write_acl_line(&wpt, &w_size, "group", name, perm_text, cnt);
-   } else {
+ #endif // !_WIN32
+  } else {
      /* indicate to caller: unknown type */
      {ret = -4; goto ex;}
    }
