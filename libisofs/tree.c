@@ -144,6 +144,9 @@ int iso_image_add_new_dir(IsoImage *image, IsoDir *parent, const char *name,
 int iso_tree_add_new_symlink(IsoDir *parent, const char *name,
                              const char *dest, IsoSymlink **link)
 {
+#ifdef _WIN32
+    return ISO_ERROR;
+#else
     int ret;
     char *n, *d;
     IsoSymlink *node;
@@ -190,6 +193,7 @@ int iso_tree_add_new_symlink(IsoDir *parent, const char *name,
 
     /* add to dir */
     return iso_dir_insert(parent, (IsoNode*)node, pos, ISO_REPLACE_NEVER);
+#endif // _WIN32
 }
 
 int iso_image_add_new_symlink(IsoImage *image, IsoDir *parent,

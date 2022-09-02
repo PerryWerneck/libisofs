@@ -1,10 +1,10 @@
 /*
  * Copyright (c) 2007 Vreixo Formoso
  * Copyright (c) 2022 Thomas Schmitt
- * 
- * This file is part of the libisofs project; you can redistribute it and/or 
- * modify it under the terms of the GNU General Public License version 2 
- * or later as published by the Free Software Foundation. 
+ *
+ * This file is part of the libisofs project; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * or later as published by the Free Software Foundation.
  * See COPYING file for details.
  */
 
@@ -13,6 +13,7 @@
 #endif
 
 #include "fsource.h"
+#include "util.h"
 #include <stdlib.h>
 
 /**
@@ -46,7 +47,7 @@ void iso_filesystem_unref(IsoFilesystem *fs)
     }
 }
 
-/* 
+/*
  * this are just helpers to invoque methods in class
  */
 
@@ -151,7 +152,7 @@ off_t iso_file_source_lseek_capacity(IsoFileSource *src, off_t wanted_size,
         end = -1;
         goto ex;
     }
-    if (S_ISDIR(info.st_mode) || S_ISLNK(info.st_mode) || 
+    if (S_ISDIR(info.st_mode) || S_ISLNK(info.st_mode) ||
         S_ISFIFO(info.st_mode) || S_ISSOCK(info.st_mode)) {
         /* open(2) on fifo can block and have side effects.
            Active Unix sockets have not been tested but they make as few sense

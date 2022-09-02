@@ -1,10 +1,10 @@
 /*
  * Copyright (c) 2007 Vreixo Formoso
  * Copyright (c) 2009 - 2012 Thomas Schmitt
- * 
- * This file is part of the libisofs project; you can redistribute it and/or 
- * modify it under the terms of the GNU General Public License version 2 
- * or later as published by the Free Software Foundation. 
+ *
+ * This file is part of the libisofs project; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * or later as published by the Free Software Foundation.
  * See COPYING file for details.
  */
 
@@ -35,6 +35,11 @@
 #   define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #endif
 
+#ifdef _WIN32
+#	define S_ISLNK(x) 0
+#	define S_ISSOCK(x) 0
+#endif
+
 #define DIV_UP(n,div) ((n + div - 1) / div)
 #define ROUND_UP(n,mul) (DIV_UP(n, mul) * mul)
 
@@ -47,7 +52,7 @@ int iso_init_locale(int flag);
 
 /**
  * Convert the charset encoding of a given string.
- * 
+ *
  * @param input
  *      Input string
  * @param icharset
@@ -74,7 +79,7 @@ int strnconvl(const char *str, const char *icharset, const char *ocharset,
 
 /**
  * Convert a given string from any input charset to ASCII
- * 
+ *
  * @param icharset
  *      Input charset. Must be supported by iconv
  * @param input
@@ -89,7 +94,7 @@ int str2ascii(const char *icharset, const char *input, char **output);
 /**
  * Convert a given string from any input charset to UCS-2BE charset,
  * used for Joliet file identifiers.
- * 
+ *
  * @param icharset
  *      Input charset. Must be supported by iconv
  * @param input
@@ -105,7 +110,7 @@ int str2ucs(const char *icharset, const char *input, uint16_t **output);
  * Convert a given string from any input charset to UTF-16BE charset,
  * used for HFS+ file identifiers.
  * (UTF-16 differs from older UCS-2 by having multi word characters.)
- * 
+ *
  * @param icharset
  *      Input charset. Must be supported by iconv
  * @param input
@@ -119,18 +124,18 @@ int str2utf16be(const char *icharset, const char *input, uint16_t **output);
 
 /**
  * Create a level 1 directory identifier.
- * 
+ *
  * @param src
  *      The identifier, in ASCII encoding.
  * @param relaxed
- *     0 only allow d-characters, 1 allow also lowe case chars, 
- *     2 allow all characters 
+ *     0 only allow d-characters, 1 allow also lowe case chars,
+ *     2 allow all characters
  */
 char *iso_1_dirid(const char *src, int relaxed);
 
 /**
  * Create a level 2 directory identifier.
- * 
+ *
  * @param src
  *      The identifier, in ASCII encoding.
  */
@@ -138,27 +143,27 @@ char *iso_2_dirid(const char *src);
 
 /**
  * Create a dir name suitable for an ISO image with relaxed constraints.
- * 
+ *
  * @param src
  *      The identifier, in ASCII encoding.
  * @param size
  *     Max len for the name
  * @param relaxed
- *     0 only allow d-characters, 1 allow also lowe case chars, 
- *     2 allow all characters 
+ *     0 only allow d-characters, 1 allow also lowe case chars,
+ *     2 allow all characters
  */
 char *iso_r_dirid(const char *src, int size, int relaxed);
 
 /**
- * Create a level 1 file identifier that consists of a name, in 8.3 
+ * Create a level 1 file identifier that consists of a name, in 8.3
  * format.
  * Note that version number is not added to the file name
- * 
+ *
  * @param src
  *      The identifier, in ASCII encoding.
  * @param relaxed
- *     0 only allow d-characters, 1 allow also lowe case chars, 
- *     2 allow all characters 
+ *     0 only allow d-characters, 1 allow also lowe case chars,
+ *     2 allow all characters
  * @param force_dots
  *      If 1 then prepend empty extension by SEPARATOR1 = '.'
  */
@@ -167,7 +172,7 @@ char *iso_1_fileid(const char *src, int relaxed, int force_dots);
 /**
  * Create a level 2 file identifier.
  * Note that version number is not added to the file name
- * 
+ *
  * @param src
  *      The identifier, in ASCII encoding.
  */
@@ -175,31 +180,31 @@ char *iso_2_fileid(const char *src);
 
 /**
  * Create a file name suitable for an ISO image with relaxed constraints.
- * 
+ *
  * @param src
  *      The identifier, in ASCII encoding.
  * @param len
  *     Max len for the name, without taken the "." into account.
  * @param relaxed
- *     0 only allow d-characters, 1 allow also lowe case chars, 
- *     2 allow all characters 
+ *     0 only allow d-characters, 1 allow also lowe case chars,
+ *     2 allow all characters
  * @param forcedot
  *     Whether to ensure that "." is added
  */
 char *iso_r_fileid(const char *src, size_t len, int relaxed, int forcedot);
 
 /**
- * Create a Joliet file identifier that consists of name and extension. The 
+ * Create a Joliet file identifier that consists of name and extension. The
  * combined name and extension length will normally not exceed 64 characters
  * (= 128 bytes). The name and the extension will be separated (.).
  * All characters consist of 2 bytes and the resulting string is
- * NULL-terminated by a 2-byte NULL. 
- * 
+ * NULL-terminated by a 2-byte NULL.
+ *
  * Note that version number and (;1) is not appended.
  * @param flag
  *        bit0= no_force_dots
  *        bit1= allow 103 characters rather than 64
- * @return 
+ * @return
  *        NULL if the original name and extension both are of length 0.
  */
 uint16_t *iso_j_file_id(const uint16_t *src, int flag);
@@ -207,12 +212,12 @@ uint16_t *iso_j_file_id(const uint16_t *src, int flag);
 /**
  * Create a Joliet directory identifier that consists of name and optionally
  * extension. The combined name and extension length will not exceed 128 bytes,
- * and the name and extension will be separated (.). All characters consist of 
- * 2 bytes and the resulting string is NULL-terminated by a 2-byte NULL. 
- * 
+ * and the name and extension will be separated (.). All characters consist of
+ * 2 bytes and the resulting string is NULL-terminated by a 2-byte NULL.
+ *
  * @param flag
  *        bit1= allow 103 characters rather than 64
- * @return 
+ * @return
  *        NULL if the original name and extension both are of length 0.
  */
 uint16_t *iso_j_dir_id(const uint16_t *src, int flag);
@@ -283,9 +288,9 @@ uint32_t iso_read_bb(const uint8_t *buf, int bytes, int *error);
 uint64_t iso_read_lsb64(const uint8_t *buf);
 uint64_t iso_read_msb64(const uint8_t *buf);
 
-/** 
+/**
  * Records the date/time into a 7 byte buffer (ECMA-119, 9.1.5)
- * 
+ *
  * @param buf
  *      Buffer where the date will be written
  * @param t
@@ -303,9 +308,9 @@ time_t iso_datetime_read_17(const uint8_t *buf);
 
 /**
  * Check whether the caller process has read access to the given local file.
- * 
- * @return 
- *     1 on success (i.e, the process has read access), < 0 on error 
+ *
+ * @return
+ *     1 on success (i.e, the process has read access), < 0 on error
  *     (including ISO_FILE_ACCESS_DENIED on access denied to the specified file
  *     or any directory on the path).
  */
@@ -350,7 +355,7 @@ typedef void (*hfree_data_t)(void *key, void *data);
  *
  * @param compare
  *     A function to compare two keys. It takes a pointer to both keys
- *     and return 0, -1 or 1 if the first key is equal, less or greater 
+ *     and return 0, -1 or 1 if the first key is equal, less or greater
  *     than the second one.
  * @param tree
  *     Location where the tree structure will be stored.
@@ -359,9 +364,9 @@ int iso_rbtree_new(int (*compare)(const void*, const void*), IsoRBTree **tree);
 
 /**
  * Destroy a given tree.
- * 
+ *
  * Note that only the structure itself is deleted. To delete the elements, you
- * should provide a valid free_data function. It will be called for each 
+ * should provide a valid free_data function. It will be called for each
  * element of the tree, so you can use it to free any related data.
  */
 void iso_rbtree_destroy(IsoRBTree *tree, void (*free_data)(void *));
@@ -374,7 +379,7 @@ void iso_rbtree_destroy(IsoRBTree *tree, void (*free_data)(void *));
  * @param data
  *     element to be inserted on the tree. It can't be NULL
  * @param item
- *     if not NULL, it will point to a location where the tree element ptr 
+ *     if not NULL, it will point to a location where the tree element ptr
  *     will be stored. If data was inserted, *item == data. If data was
  *     already on the tree, *item points to the previously inserted object
  *     that is equal to data.
@@ -390,7 +395,7 @@ size_t iso_rbtree_get_size(IsoRBTree *tree);
 
 /**
  * Get an array view of the elements of the tree.
- * 
+ *
  * @param include_item
  *    Function to select which elements to include in the array. It that takes
  *    a pointer to an element and returns 1 if the element should be included,
@@ -405,7 +410,7 @@ size_t iso_rbtree_get_size(IsoRBTree *tree);
  *    no more needed. Note that the array is NULL-terminated, and thus it
  *    has size + 1 length.
  */
-void **iso_rbtree_to_array(IsoRBTree *tree, int (*include_item)(void *), 
+void **iso_rbtree_to_array(IsoRBTree *tree, int (*include_item)(void *),
                            size_t *size);
 
 /** Predict the size of the array which gets returned by iso_rbtree_to_array().
@@ -416,40 +421,40 @@ size_t iso_rbtree_count_array(IsoRBTree *tree, size_t initial_count,
 
 /**
  * Create a new hash table.
- * 
+ *
  * @param size
  *     Number of slots in table.
  * @param hash
  *     Function used to generate
  */
-int iso_htable_create(size_t size, hash_funtion_t hash, 
+int iso_htable_create(size_t size, hash_funtion_t hash,
                       compare_function_t compare, IsoHTable **table);
 
 /**
  * Put an element in a Hash Table. The element will be identified by
  * the given key, that you should use to retrieve the element again.
- * 
+ *
  * This function allow duplicates, i.e., two items with the same key. In those
  * cases, the value returned by iso_htable_get() is undefined. If you don't
  * want to allow duplicates, use iso_htable_put() instead;
- * 
+ *
  * Both the key and data pointers will be stored internally, so you should
- * free the objects they point to. Use iso_htable_remove() to delete an 
+ * free the objects they point to. Use iso_htable_remove() to delete an
  * element from the table.
  */
 int iso_htable_add(IsoHTable *table, void *key, void *data);
 
 /**
  * Like iso_htable_add(), but this doesn't allow dulpicates.
- * 
+ *
  * @return
  *     1 success, 0 if an item with the same key already exists, < 0 error
  */
 int iso_htable_put(IsoHTable *table, void *key, void *data);
 
 /**
- * Retrieve an element from the given table. 
- * 
+ * Retrieve an element from the given table.
+ *
  * @param table
  *     Hash table
  * @param key
@@ -463,15 +468,15 @@ int iso_htable_put(IsoHTable *table, void *key, void *data);
 int iso_htable_get(IsoHTable *table, void *key, void **data);
 
 /**
- * Remove an item with the given key from the table. In tables that allow 
+ * Remove an item with the given key from the table. In tables that allow
  * duplicates, it is undefined the element that will be deleted.
- * 
+ *
  * @param table
  *     Hash table
  * @param key
  *     Key of the element that will be removed
  * @param free_data
- *     Function that will be called passing as parameters both the key and 
+ *     Function that will be called passing as parameters both the key and
  *     the element that will be deleted. The user can use it to free the
  *     element. You can pass NULL if you don't want to delete the item itself.
  * @return
@@ -482,21 +487,21 @@ int iso_htable_remove(IsoHTable *table, void *key, hfree_data_t free_data);
 /**
  * Like remove, but instead of checking for key equality using the compare
  * function, it just compare the key pointers. If the table allows duplicates,
- * and you provide different keys (i.e. different pointers) to elements 
+ * and you provide different keys (i.e. different pointers) to elements
  * with same key (i.e. same content), this function ensure the exact element
- * is removed. 
- * 
+ * is removed.
+ *
  * It has the problem that you must provide the same key pointer, and not just
  * a key whose contents are equal. Moreover, if you use the same key (same
- * pointer) to identify several objects, what of those are removed is 
+ * pointer) to identify several objects, what of those are removed is
  * undefined.
- * 
+ *
  * @param table
  *     Hash table
  * @param key
  *     Key of the element that will be removed
  * @param free_data
- *     Function that will be called passing as parameters both the key and 
+ *     Function that will be called passing as parameters both the key and
  *     the element that will be deleted. The user can use it to free the
  *     element. You can pass NULL if you don't want to delete the item itself.
  * @return
@@ -506,7 +511,7 @@ int iso_htable_remove_ptr(IsoHTable *table, void *key, hfree_data_t free_data);
 
 /**
  * Destroy the given hash table.
- * 
+ *
  * Note that you're responsible to actually destroy the elements by providing
  * a valid free_data function. You can pass NULL if you only want to delete
  * the hash structure.
@@ -536,7 +541,7 @@ int iso_util_encode_len_bytes(uint32_t data, char *buffer, int data_len,
 int iso_util_decode_len_bytes(uint32_t *data, char *buffer, int *data_len,
                               int buffer_len, int flag);
 
-    
+
 /* Evaluate a data block whether it is a libisofs session checksum tag of
    desired type and eventually use it to verify the MD5 checksum computed
    so far.
@@ -581,8 +586,8 @@ int iso_truncate_rr_name(int truncate_mode, int truncate_length,
  */
 int checksum_cx_xinfo_func(void *data, int flag);
 
-/* The iso_node_xinfo_cloner function which gets associated to 
- * checksum_cx_xinfo_func by iso_init() resp. iso_init_with_flag() via 
+/* The iso_node_xinfo_cloner function which gets associated to
+ * checksum_cx_xinfo_func by iso_init() resp. iso_init_with_flag() via
  * iso_node_xinfo_make_clonable()
  */
 int checksum_cx_xinfo_cloner(void *old_data, void **new_data, int flag);
@@ -594,8 +599,8 @@ int checksum_cx_xinfo_cloner(void *old_data, void **new_data, int flag);
  */
 int checksum_md5_xinfo_func(void *data, int flag);
 
-/* The iso_node_xinfo_cloner function which gets associated to 
- * checksum_md5_xinfo_func by iso_init() resp. iso_init_with_flag() via 
+/* The iso_node_xinfo_cloner function which gets associated to
+ * checksum_md5_xinfo_func by iso_init() resp. iso_init_with_flag() via
  * iso_node_xinfo_make_clonable()
  */
 int checksum_md5_xinfo_cloner(void *old_data, void **new_data, int flag);

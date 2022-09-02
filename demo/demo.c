@@ -51,8 +51,10 @@ static char helptext[][80] = {
 #include <getopt.h>
 #include <fcntl.h>
 
-#ifndef _WIN32
-    #include <err.h>
+#ifdef _WIN32
+#	define S_ISLNK(x) 0
+#else
+#   include <err.h>
 #endif // _WIN32
 
 #include <limits.h>
@@ -453,13 +455,11 @@ iso_read_print_file_src(IsoFileSource *file)
     name = iso_file_source_get_name(file);
     printf(" %s", name);
     free(name);
-#ifdef S_ISLNK
     if (S_ISLNK(info.st_mode)) {
         char buf[PATH_MAX];
         iso_file_source_readlink(file, buf, PATH_MAX);
         printf(" -> %s\n", buf);
     }
-#endif // S_ISLNK
     printf("\n");
 }
 

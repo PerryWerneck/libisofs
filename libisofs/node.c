@@ -1535,9 +1535,11 @@ int iso_node_new_file(char *name, IsoStream *stream, IsoFile **file)
     return ISO_SUCCESS;
 }
 
-#ifdef S_IFLNK
 int iso_node_new_symlink(char *name, char *dest, IsoSymlink **link)
 {
+#ifdef _WIN32
+    return ISO_ERROR;
+#else
     IsoSymlink *new;
     int ret;
 
@@ -1569,8 +1571,8 @@ int iso_node_new_symlink(char *name, char *dest, IsoSymlink **link)
     new->st_ino = 0;
     *link = new;
     return ISO_SUCCESS;
+#endif // _WIN32
 }
-#endif // S_IFLNK
 
 int iso_node_new_special(char *name, mode_t mode, dev_t dev,
                          IsoSpecial **special)
@@ -1582,15 +1584,9 @@ int iso_node_new_special(char *name, mode_t mode, dev_t dev,
         return ISO_NULL_POINTER;
     }
 
-#ifdef S_ISLNK
     if (S_ISLNK(mode) || S_ISREG(mode) || S_ISDIR(mode)) {
         return ISO_WRONG_ARG_VALUE;
     }
-#else
-    if (S_ISREG(mode) || S_ISDIR(mode)) {
-        return ISO_WRONG_ARG_VALUE;
-    }
-#endif // S_ISLNK
 
     /* check if the name is valid */
     ret = iso_node_is_valid_name(name);
