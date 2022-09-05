@@ -1,10 +1,10 @@
 /*
  * Copyright (c) 2007 Vreixo Formoso
  * Copyright (c) 2009 - 2017 Thomas Schmitt
- * 
- * This file is part of the libisofs project; you can redistribute it and/or 
- * modify it under the terms of the GNU General Public License version 2 
- * or later as published by the Free Software Foundation. 
+ *
+ * This file is part of the libisofs project; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2
+ * or later as published by the Free Software Foundation.
  * See COPYING file for details.
  */
 
@@ -30,13 +30,17 @@
 #include <libgen.h>
 #include <string.h>
 
+#ifdef _WIN32
+    #define lstat(x,y) stat(x,y)
+#endif // _WIN32
+
 /* O_BINARY is needed for Cygwin but undefined elsewhere */
 #ifndef O_BINARY
 #define O_BINARY 0
 #endif
 
 static
-int iso_file_source_new_lfs(IsoFileSource *parent, const char *name, 
+int iso_file_source_new_lfs(IsoFileSource *parent, const char *name,
                             IsoFileSource **src);
 
 /*
@@ -234,7 +238,7 @@ int lfs_open(IsoFileSource *src)
 
     /*
      * check for possible errors, note that many of possible ones are
-     * parsed in the lstat call above 
+     * parsed in the lstat call above
      */
     if (data->openned == 0) {
         switch (errno) {
@@ -340,13 +344,13 @@ off_t lfs_lseek(IsoFileSource *src, off_t offset, int flag)
         return (off_t)((int) ISO_NULL_POINTER);
     }
     switch (flag) {
-    case 0: 
+    case 0:
         whence = SEEK_SET; break;
-    case 1: 
+    case 1:
         whence = SEEK_CUR; break;
-    case 2: 
+    case 2:
         whence = SEEK_END; break;
-    default: 
+    default:
         return (off_t)((int) ISO_WRONG_ARG_VALUE);
     }
 
@@ -420,6 +424,9 @@ int lfs_readdir(IsoFileSource *src, IsoFileSource **child)
 static
 int lfs_readlink(IsoFileSource *src, char *buf, size_t bufsiz)
 {
+#ifdef _WIN32
+    return ISO_FILE_IS_NOT_SYMLINK;
+#else
     int size, ret;
     char *path;
 
@@ -468,6 +475,7 @@ int lfs_readlink(IsoFileSource *src, char *buf, size_t bufsiz)
     }
     buf[size] = '\0';
     return ret;
+#endif // _WIN32
 }
 
 static
@@ -496,7 +504,7 @@ void lfs_free(IsoFileSource *src)
 }
 
 
-static 
+static
 int lfs_get_aa_string(IsoFileSource *src, unsigned char **aa_string, int flag)
 {
     int ret, no_non_user_perm= 0;
@@ -513,7 +521,7 @@ int lfs_get_aa_string(IsoFileSource *src, unsigned char **aa_string, int flag)
     }
     /* Obtain EAs and ACLs ("access" and "default"). ACLs encoded according
        to AAIP ACL representation. Clean out st_mode ACL entries.
-    */ 
+    */
     path = iso_file_source_get_path(src);
     if (path == NULL) {
         ret = ISO_NULL_POINTER;
@@ -531,7 +539,7 @@ int lfs_get_aa_string(IsoFileSource *src, unsigned char **aa_string, int flag)
     }
     if(ret == 2)
         no_non_user_perm= 1;
-      
+
     if (num_attrs == 0)
         result = NULL;
     else {
@@ -565,12 +573,12 @@ int lfs_clone_src(IsoFileSource *old_source,
         return ISO_STREAM_NO_CLONE; /* unknown option required */
 
     old_data = (_LocalFsFileSource *) old_source->data;
-    *new_source = NULL;  
+    *new_source = NULL;
     src = calloc(1, sizeof(IsoFileSource));
     if (src == NULL)
         goto no_mem;
     new_name = strdup(old_data->name);
-    if (new_name == NULL) 
+    if (new_name == NULL)
         goto no_mem;
 
     new_data = calloc(1, sizeof(_LocalFsFileSource));
@@ -600,7 +608,7 @@ no_mem:;
 }
 
 
-IsoFileSourceIface lfs_class = { 
+IsoFileSourceIface lfs_class = {
 
     2, /* version */
     lfs_get_path,
@@ -623,12 +631,12 @@ IsoFileSourceIface lfs_class = {
 
 
 /**
- * 
+ *
  * @return
  *     1 success, < 0 error
  */
 static
-int iso_file_source_new_lfs(IsoFileSource *parent, const char *name, 
+int iso_file_source_new_lfs(IsoFileSource *parent, const char *name,
                             IsoFileSource **src)
 {
     IsoFileSource *lfs_src;
@@ -692,12 +700,12 @@ int lfs_get_by_path(IsoFilesystem *fs, const char *path, IsoFileSource **file)
     IsoFileSource *src;
     struct stat info;
     char *ptr, *brk_info, *component;
-    
+
     if (fs == NULL || path == NULL || file == NULL) {
         return ISO_NULL_POINTER;
     }
-    
-    /* 
+
+    /*
      * first of all check that it is a valid path.
      */
     if (lstat(path, &info) != 0) {
@@ -726,7 +734,7 @@ int lfs_get_by_path(IsoFilesystem *fs, const char *path, IsoFileSource **file)
         }
         return err;
     }
-    
+
     /* ok, path is valid. create the file source */
     ret = lfs_get_root(fs, &src);
     if (ret < 0) {
@@ -743,7 +751,7 @@ int lfs_get_by_path(IsoFilesystem *fs, const char *path, IsoFileSource **file)
         iso_file_source_unref(src);
         return ISO_OUT_OF_MEM;
     }
-    
+
     component = strtok_r(ptr, "/", &brk_info);
     while (component) {
         IsoFileSource *child = NULL;
@@ -760,7 +768,7 @@ int lfs_get_by_path(IsoFilesystem *fs, const char *path, IsoFileSource **file)
                 break;
             }
         }
-        
+
         src = child;
         component = strtok_r(NULL, "/", &brk_info);
     }

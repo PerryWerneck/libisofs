@@ -29,8 +29,10 @@
 #include <iconv.h>
 #include <locale.h>
 
-#ifndef _WIN32
-#include <langinfo.h>
+#ifdef _WIN32
+    #include <windows.h>
+#else
+    #include <langinfo.h>
 #endif // _WIN32
 
 #include <unistd.h>
@@ -192,6 +194,7 @@ char *iso_get_local_charset(int flag)
 #ifdef _WIN32
     static char buffer[10];
     snprintf(buffer,9,"CP%u",GetACP());
+    return buffer;
 #else
    return nl_langinfo(CODESET);
 #endif // _WIN32
@@ -1592,7 +1595,11 @@ void iso_datetime_7(unsigned char *buf, time_t t, int always_gmt)
 
     memset(&tm, 0, sizeof(tm));
     tm.tm_isdst = -1;  /* some OSes change tm_isdst only if it is -1 */
+#ifdef HAVE_LOCALTIME_R
     localtime_r(&t, &tm);
+#else
+    tm = *localtime(&t);
+#endif // HAVE_LOCALTIME_R
 
 #ifdef HAVE_TM_GMTOFF
     tzoffset = tm.tm_gmtoff / 60 / 15;
@@ -1610,7 +1617,11 @@ void iso_datetime_7(unsigned char *buf, time_t t, int always_gmt)
 
     if (tzoffset > 52 || tzoffset < -48 || always_gmt) {
         /* absurd timezone offset, represent time in GMT */
+#ifdef HAVE_GMTIME_R
         gmtime_r(&t, &tm);
+#else
+        tm = *gmtime(&t);
+#endif // HAVE_GMTIME_R
         tzoffset = 0;
     }
 
@@ -1658,9 +1669,17 @@ void iso_datetime_17(unsigned char *buf, time_t t, int always_gmt)
 
     memset(&tm, 0, sizeof(tm));
     tm.tm_isdst = -1;  /* some OSes change tm_isdst only if it is -1 */
+#ifdef HAVE_LOCALTIME_R
     localtime_r(&t, &tm);
+#else
+    tm = *localtime(&t);
+#endif // HAVE_LOCALTIME_R
 
+#ifdef HAVE_LOCALTIME_R
     localtime_r(&t, &tm);
+#else
+    tm = *localtime(&t);
+#endif // HAVE_LOCALTIME_R
 
 #ifdef HAVE_TM_GMTOFF
     tzoffset = tm.tm_gmtoff / 60 / 15;
@@ -1678,7 +1697,11 @@ void iso_datetime_17(unsigned char *buf, time_t t, int always_gmt)
 
     if (tzoffset > 52 || tzoffset < -48 || always_gmt) {
         /* absurd timezone offset, represent time in GMT */
+#ifdef HAVE_GMTIME_R
         gmtime_r(&t, &tm);
+#else
+        tm = *gmtime(&t);
+#endif // HAVE_GMTIME_R
         tzoffset = 0;
     }
 

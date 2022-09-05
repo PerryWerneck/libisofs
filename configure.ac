@@ -114,6 +114,18 @@ AC_CHECK_DECL([timegm],
 	,
 	[#include <time.h>])
 
+dnl Check if non standard localtime_r() function is available
+AC_CHECK_DECL([localtime_r], 
+	[AC_DEFINE(HAVE_LOCALTIME_R, 1, [Define this if localtime_r function is available])],
+	,
+	[#include <time.h>])
+
+dnl Check if non standard gmtime_r() function is available
+AC_CHECK_DECL([localtime_r], 
+	[AC_DEFINE(HAVE_GMTIME_R, 1, [Define this if gmtime_r function is available])],
+	,
+	[#include <time.h>])
+
 dnl Whether timezone is an integer variable
 AH_TEMPLATE([Libburnia_timezonE], [Either timezone or 0])
 LIBBURNIA_TRY_TIMEZONE
